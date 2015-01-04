@@ -39,30 +39,42 @@ public class LoginActivity extends Activity {
 
     //JSON response
     private static final String TAG_SUCCESS = "success";
+    private static final String TAG_MESSAGE = "message";
+    private static final String TAG_ID = "user_id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        // check if user is already logged in
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        // row count
+        int count = db.rowCount();
+        // if row exists
+        if(count == 1) {
+            Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+            startActivity(intent);
+        } else {
+            setContentView(R.layout.activity_login);
 
-        mEmail = (EditText) findViewById(R.id.txtEmail);
-        mPassword = (EditText) findViewById(R.id.txtPassword);
-        mLogin = (Button) findViewById(R.id.btnLogin);
-        mRegister = (Button) findViewById(R.id.btnRegister);
+            mEmail = (EditText) findViewById(R.id.txtEmail);
+            mPassword = (EditText) findViewById(R.id.txtPassword);
+            mLogin = (Button) findViewById(R.id.btnLogin);
+            mRegister = (Button) findViewById(R.id.btnRegister);
 
-        mLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new LoginUser().execute();
-            }
-        });
-        // onclick listener to begin register task
-        mRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new RegisterUser().execute();
-            }
-        });
+            mLogin.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new LoginUser().execute();
+                }
+            });
+            // onclick listener to begin register task
+            mRegister.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new RegisterUser().execute();
+                }
+            });
+        }
     }
 
 
@@ -112,39 +124,42 @@ public class LoginActivity extends Activity {
             String email = mEmail.getText().toString();
             String password = mPassword.getText().toString();
 
-            try {
-                // build parameters
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                params.add(new BasicNameValuePair("email", email));
-                params.add(new BasicNameValuePair("password", password));
-
-                // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
-
-                Log.d("Response: ", json.toString());
-
-                // check success tag
+            // check if fields are empty
+            if (email.isEmpty() || password.isEmpty()) {
+                String message = "Required fields are missing";
+                makeToast(message);
+            } else {
                 try {
-                    int success = json.getInt(TAG_SUCCESS);
+                    // build parameters
+                    List<NameValuePair> params = new ArrayList<NameValuePair>();
+                    params.add(new BasicNameValuePair("email", email));
+                    params.add(new BasicNameValuePair("password", password));
 
-                    if(success == 1) {
-                        // login successful
+                    // get JSON Object
+                    JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
 
-                    } else if(success == 0) {
-                        // login failed - incorrect username/password
-                        Toast.makeText(getApplicationContext(),
-                                "Incorrect email/password", Toast.LENGTH_SHORT).show();
-                    } else if(success == -1) {
-                        // login failed - required fields missing
-                        Toast.makeText(getApplicationContext(),
-                                "Required field(s) missing", Toast.LENGTH_SHORT).show();
+                    Log.d("Response: ", json.toString());
+
+                    // check success tag
+                    try {
+                        int success = json.getInt(TAG_SUCCESS);
+                        String message = json.getString(TAG_MESSAGE);
+
+                        if (success == 1) {
+                            // login successful
+                            int userId = json.getInt(TAG_ID);
+                            Login(userId);
+
+                        } else {
+                            makeToast(message);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                }
-            } catch (Exception e){
-                e.printStackTrace();
 
+                }
             }
             return null;
         }
@@ -190,15 +205,15 @@ public class LoginActivity extends Activity {
                 // check for success tag
                 try {
                     int success = json.getInt(TAG_SUCCESS);
+                    String message = json.getString(TAG_MESSAGE);
 
                     if (success == 1) {
                         // registration successful
-                        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-                        startActivity(intent);
-
-                        finish();
+                        int id = json.getInt(TAG_ID);
+                        Login(id);
                     } else {
                         // registration failed
+                        makeToast(message);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -214,5 +229,26 @@ public class LoginActivity extends Activity {
         protected void onPostExecute(String file_url) {
             mProgressDialog.dismiss();
         }
+    }
+
+    // toast alerts
+    private void makeToast(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    // method to login user in local SQLite Database
+    private void Login(int userId) {
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+
+        // logout any previous user
+        db.resetTables();
+        // add user to table
+        db.addUser(userId);
+
+        // go to home activity
+        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+        startActivity(intent);
+
+        finish();
     }
 }
