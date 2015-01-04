@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal">
+    <data-source name="MySQL - ?user=root@127.0.0.1" uuid="2fcab9d5-d66c-4a5a-9b82-2b057160efc6">
+      <secret-storage>master_key</secret-storage>
+      <user-name>root</user-name>
+      <schema-pattern>adb.* phpmyadmin.*</schema-pattern>
+      <default-schemas>phpmyadmin.*</default-schemas>
+    </data-source>
+  </component>
+</project>
