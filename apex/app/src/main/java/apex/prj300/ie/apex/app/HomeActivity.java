@@ -6,6 +6,8 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -17,6 +19,10 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class HomeActivity extends Activity
@@ -31,6 +37,7 @@ public class HomeActivity extends Activity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +66,31 @@ public class HomeActivity extends Activity
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.title_section1);
+                mTitle = getString(R.string.my_routes);
                 break;
             case 2:
-                mTitle = getString(R.string.title_section2);
+                mTitle = getString(R.string.start_recording);
                 break;
             case 3:
-                mTitle = getString(R.string.title_section3);
+                mTitle = getString(R.string.find_routes);
+            case 4:
+                mTitle = getString(R.string.sign_out);
+                signOut(); // sign out
                 break;
         }
+    }
+
+    private void signOut() {
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        db.resetTables();
+
+        Toast.makeText(getApplicationContext(), "Logged Out", Toast.LENGTH_SHORT).show();
+        // redirect to login activity
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        startActivity(intent);
+
+        finish();
+
     }
 
     public void restoreActionBar() {

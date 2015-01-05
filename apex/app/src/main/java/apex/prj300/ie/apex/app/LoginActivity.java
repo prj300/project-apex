@@ -40,7 +40,7 @@ public class LoginActivity extends Activity {
     //JSON response
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
-    private static final String TAG_ID = "user_id";
+    private static final String TAG_ID = "id";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,6 +118,7 @@ public class LoginActivity extends Activity {
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();
         }
+
         @Override
         protected String doInBackground(String...args) {
             // read inputs into strings
@@ -147,8 +148,8 @@ public class LoginActivity extends Activity {
 
                         if (success == 1) {
                             // login successful
-                            int userId = json.getInt(TAG_ID);
-                            Login(userId);
+                            int id = json.getInt(TAG_ID);
+                            Login(id);
 
                         } else {
                             makeToast(message);
@@ -158,7 +159,6 @@ public class LoginActivity extends Activity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-
                 }
             }
             return null;
@@ -189,39 +189,43 @@ public class LoginActivity extends Activity {
 
         @Override
         protected String doInBackground(String... args) {
-            String email = mEmail.getText().toString();
-            String password = mPassword.getText().toString();
+            if(mEmail.getText().equals("") || mPassword.getText().equals("")) {
+                String message = "Required fields are missing";
+                makeToast(message);
+            } else {
+                String email = mEmail.getText().toString();
+                String password = mPassword.getText().toString();
 
-            try {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
-                params.add(new BasicNameValuePair("email", email));
-                params.add(new BasicNameValuePair("password", password));
-
-                // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
-
-                Log.d("Response: ", json.toString());
-
-                // check for success tag
                 try {
-                    int success = json.getInt(TAG_SUCCESS);
-                    String message = json.getString(TAG_MESSAGE);
+                    List<NameValuePair> params = new ArrayList<NameValuePair>();
+                    params.add(new BasicNameValuePair("email", email));
+                    params.add(new BasicNameValuePair("password", password));
 
-                    if (success == 1) {
-                        // registration successful
-                        int id = json.getInt(TAG_ID);
-                        Login(id);
-                    } else {
-                        // registration failed
-                        makeToast(message);
+                    // get JSON Object
+                    JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
+
+                    Log.d("Response: ", json.toString());
+
+                    // check for success tag
+                    try {
+                        int success = json.getInt(TAG_SUCCESS);
+                        String message = json.getString(TAG_MESSAGE);
+
+                        if (success == 1) {
+                            // registration successful
+                            int id = json.getInt(TAG_ID);
+                            Login(id);
+                        } else {
+                            // registration failed
+                            makeToast(message);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } catch(Exception e) {
-                e.printStackTrace();
             }
-
             return null;
         }
 
@@ -237,13 +241,13 @@ public class LoginActivity extends Activity {
     }
 
     // method to login user in local SQLite Database
-    private void Login(int userId) {
+    private void Login(int id) {
         DatabaseHandler db = new DatabaseHandler(getApplicationContext());
 
         // logout any previous user
         db.resetTables();
         // add user to table
-        db.addUser(userId);
+        db.addUser(id);
 
         // go to home activity
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
