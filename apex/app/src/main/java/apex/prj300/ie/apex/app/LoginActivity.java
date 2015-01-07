@@ -37,44 +37,51 @@ public class LoginActivity extends Activity {
     //register url
     private static final String REGISTER_URL = "http://10.0.2.2/android/apexdb/create_user.php";
 
-    //JSON response
+    // JSON response
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_MESSAGE = "message";
     private static final String TAG_ID = "id";
 
+    // Toast messages
+    private static final String TOAST_MISSING_FIELDS = "Required fields are missing";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // check if user is already logged in
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-        // row count
-        int count = db.rowCount();
-        // if row exists
-        if(count == 1) {
-            Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-            startActivity(intent);
-        } else {
-            setContentView(R.layout.activity_login);
 
-            mEmail = (EditText) findViewById(R.id.txtEmail);
-            mPassword = (EditText) findViewById(R.id.txtPassword);
-            mLogin = (Button) findViewById(R.id.btnLogin);
-            mRegister = (Button) findViewById(R.id.btnRegister);
+        setContentView(R.layout.activity_login);
 
-            mLogin.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+        mEmail = (EditText) findViewById(R.id.txtEmail);
+        mPassword = (EditText) findViewById(R.id.txtPassword);
+        mLogin = (Button) findViewById(R.id.btnLogin);
+        mRegister = (Button) findViewById(R.id.btnRegister);
+
+        // register button listeners
+        mLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mEmail.getText().toString().equals("")
+                        || mPassword.getText().toString().equals("")) {
+                    Log.d("Input: ", "Fields missing");
+                    popToast(TOAST_MISSING_FIELDS, "short");
+                } else {
                     new LoginUser().execute();
                 }
-            });
-            // onclick listener to begin register task
-            mRegister.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            }
+        });
+        // onclick listener to begin register task
+        mRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mEmail.getText().toString().equals("")
+                        || mPassword.getText().toString().equals("")) {
+                    Log.d("Input: ", "Fields missing");
+                    popToast(TOAST_MISSING_FIELDS, "short");
+                } else {
                     new RegisterUser().execute();
                 }
-            });
-        }
+            }
+        });
     }
 
 
@@ -102,9 +109,7 @@ public class LoginActivity extends Activity {
     }
 
     /**
-     *
      * Background task for logging in
-     *
      */
     private class LoginUser extends AsyncTask<String, String, String> {
 
@@ -121,45 +126,39 @@ public class LoginActivity extends Activity {
 
         @Override
         protected String doInBackground(String...args) {
+
             // read inputs into strings
             String email = mEmail.getText().toString();
             String password = mPassword.getText().toString();
+            try {
+                // build parameters
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("email", email));
+                params.add(new BasicNameValuePair("password", password));
 
-            // check if fields are empty
-            if (email.isEmpty() || password.isEmpty()) {
-                String message = "Required fields are missing";
-                makeToast(message);
-            } else {
+                // get JSON Object
+                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
+
+                Log.d("Response: ", json.toString());
+
+                // check success tag
                 try {
-                    // build parameters
-                    List<NameValuePair> params = new ArrayList<NameValuePair>();
-                    params.add(new BasicNameValuePair("email", email));
-                    params.add(new BasicNameValuePair("password", password));
+                    int success = json.getInt(TAG_SUCCESS);
+                    String message = json.getString(TAG_MESSAGE);
 
-                    // get JSON Object
-                    JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
+                    if (success == 1) {
+                        // login successful
+                        int id = json.getInt(TAG_ID);
+                        Login(id);
 
-                    Log.d("Response: ", json.toString());
-
-                    // check success tag
-                    try {
-                        int success = json.getInt(TAG_SUCCESS);
-                        String message = json.getString(TAG_MESSAGE);
-
-                        if (success == 1) {
-                            // login successful
-                            int id = json.getInt(TAG_ID);
-                            Login(id);
-
-                        } else {
-                            makeToast(message);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    } else {
+                        Log.d("Message: ", message);
                     }
-                } catch (Exception e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             return null;
         }
@@ -171,9 +170,7 @@ public class LoginActivity extends Activity {
     }
 
     /**
-     *
      * Background task for registering
-     *
      */
     private class RegisterUser extends AsyncTask<String, String, String> {
 
@@ -189,42 +186,39 @@ public class LoginActivity extends Activity {
 
         @Override
         protected String doInBackground(String... args) {
-            if(mEmail.getText().equals("") || mPassword.getText().equals("")) {
-                String message = "Required fields are missing";
-                makeToast(message);
-            } else {
-                String email = mEmail.getText().toString();
-                String password = mPassword.getText().toString();
 
+            String email = mEmail.getText().toString();
+            String password = mPassword.getText().toString();
+
+            try {
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                params.add(new BasicNameValuePair("email", email));
+                params.add(new BasicNameValuePair("password", password));
+
+                // get JSON Object
+                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
+
+                Log.d("Response: ", json.toString());
+
+                // check for success tag
                 try {
-                    List<NameValuePair> params = new ArrayList<NameValuePair>();
-                    params.add(new BasicNameValuePair("email", email));
-                    params.add(new BasicNameValuePair("password", password));
+                    int success = json.getInt(TAG_SUCCESS);
+                    String message = json.getString(TAG_MESSAGE);
+                    Log.d("Message: ", message);
 
-                    // get JSON Object
-                    JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
-
-                    Log.d("Response: ", json.toString());
-
-                    // check for success tag
-                    try {
-                        int success = json.getInt(TAG_SUCCESS);
-                        String message = json.getString(TAG_MESSAGE);
-
-                        if (success == 1) {
-                            // registration successful
-                            int id = json.getInt(TAG_ID);
-                            Login(id);
-                        } else {
-                            // registration failed
-                            makeToast(message);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if (success == 1) {
+                        // registration successful
+                        int id = json.getInt(TAG_ID);
+                        Login(id);
+                    } else {
+                        // registration failed
+                        popToast(message, "short");
                     }
-                } catch (Exception e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             return null;
         }
@@ -236,8 +230,13 @@ public class LoginActivity extends Activity {
     }
 
     // toast alerts
-    private void makeToast(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    private void popToast(String message, String length) {
+
+        if(length.equals("short")) {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+        }
     }
 
     // method to login user in local SQLite Database
@@ -247,7 +246,9 @@ public class LoginActivity extends Activity {
         // logout any previous user
         db.resetTables();
         // add user to table
-        db.addUser(id);
+        //Toast.makeText(getApplicationContext(), user.getId(), Toast.LENGTH_LONG).show();
+        db.addUser(new User(id));
+        Log.d("User: ", Integer.toString(id));
 
         // go to home activity
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);

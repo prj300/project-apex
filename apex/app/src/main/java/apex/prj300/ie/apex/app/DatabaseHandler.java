@@ -6,7 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Enda on 04/01/2015.
@@ -17,7 +18,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 8;
     // database name
     private static final String DATABASE_NAME = "apex";
     // login table name
@@ -68,11 +69,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Store user in database
      */
-    public void addUser(int id) {
+    public void addUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_ID, id);
+        values.put(KEY_ID, user.getId()); // ID
 
         // insert row
         db.insert(TABLE_LOGIN, null, values);
@@ -82,23 +83,27 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     /**
      * Get user data from database
      */
-    public HashMap<String, String> getUserDetails() {
-        HashMap<String, String> user = new HashMap<String, String>();
-        String selectQuery = "SELECT * FROM " + TABLE_LOGIN;
+    public List<User> getUser() {
+        List<User> currentUser = new ArrayList<User>();
+        // select query
+        String selectQuery = "SELECT * FROM " + TABLE_LOGIN + " LIMIT 1";
 
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
-        // Move to first row
-        // (there should be only one row anyway, we are just being explicit)
-        cursor.moveToFirst();
-        if(cursor.getCount() > 0) { // user exists
-            user.put("id", cursor.getString(1));
+
+        // loop through rows and add to list
+        if(cursor.moveToFirst()) {
+            do {
+                User user = new User();
+                user.setId(Integer.parseInt(cursor.getString(0)));
+                currentUser.add(user);
+            } while (cursor.moveToNext());
         }
-        cursor.close();
-        db.close();
+
         // return user
-        return user;
+        return currentUser;
     }
+
 
     /**
      * Reset tables

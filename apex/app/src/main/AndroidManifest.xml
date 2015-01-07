@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="apex.prj300.ie.apex.app.LoginActivity"
+            android:name="apex.prj300.ie.apex.app.HomeActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="apex.prj300.ie.apex.app.HomeActivity"
+            android:name="apex.prj300.ie.apex.app.LoginActivity"
             android:label="@string/title_activity_home" >
         </activity>
     </application>

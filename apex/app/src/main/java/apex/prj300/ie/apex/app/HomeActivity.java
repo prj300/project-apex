@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class HomeActivity extends Activity
@@ -42,16 +44,53 @@ public class HomeActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        // checking if user is already logged in
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        // row count
+        int count = db.rowCount();
+        if(count > 0) {
+            setContentView(R.layout.activity_home);
 
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
+            // if row exists
+            mNavigationDrawerFragment = (NavigationDrawerFragment)
+                    getFragmentManager().findFragmentById(R.id.navigation_drawer);
+            mTitle = getTitle();
+
+            // Set up the drawer.
+            mNavigationDrawerFragment.setUp(
+                    R.id.navigation_drawer,
+                    (DrawerLayout) findViewById(R.id.drawer_layout));
+
+            // get user details
+            getUser();
+        } else {
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+
+            finish();
+        }
+    }
+
+    private void getUser() {
+        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+
+        db.getUser();
+
+        User user = new User();
+        int id = user.getId();
+
+        String idm = Integer.toString(id);
+        Log.d("ID: ", idm);
+    }
+
+    private void popToast(String message, String length) {
+
+        if(length.equals("short")) {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -66,10 +105,10 @@ public class HomeActivity extends Activity
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.my_routes);
+                mTitle = getString(R.string.start_recording);
                 break;
             case 2:
-                mTitle = getString(R.string.start_recording);
+                mTitle = getString(R.string.my_routes);
                 break;
             case 3:
                 mTitle = getString(R.string.find_routes);
@@ -84,7 +123,7 @@ public class HomeActivity extends Activity
         DatabaseHandler db = new DatabaseHandler(getApplicationContext());
         db.resetTables();
 
-        Toast.makeText(getApplicationContext(), "Logged Out", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();
         // redirect to login activity
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
