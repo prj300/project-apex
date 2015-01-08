@@ -87,7 +87,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public List<User> getUser() {
         List<User> currentUser = new ArrayList<User>();
         // select query
-        String selectQuery = "SELECT * FROM " + TABLE_LOGIN + " LIMIT 1";
+        String selectQuery = "SELECT id FROM " + TABLE_LOGIN + " LIMIT 1";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);

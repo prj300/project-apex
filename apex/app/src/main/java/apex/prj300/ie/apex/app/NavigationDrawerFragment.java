@@ -104,6 +104,7 @@ public class NavigationDrawerFragment extends Fragment {
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
                 new String[]{
+                        getString(R.string.title_activity_home),
                         getString(R.string.start_recording),
                         getString(R.string.my_routes),
                         getString(R.string.find_routes),

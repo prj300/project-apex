@@ -37,13 +37,12 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     // login url
-    private static final String LOGIN_URL = "http://10.0.2.2/android/apexdb/login_user.php";
+    private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
     //register url
-    private static final String REGISTER_URL = "http://10.0.2.2/android/apexdb/create_user.php";
+    private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
 
     // JSON response
     private static final String TAG_SUCCESS = "success";
-    private static final String TAG_MESSAGE = "message";
     private static final String TAG_ID = "id";
 
     // Toast messages
@@ -205,7 +204,7 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
+                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
 
                 Log.d("Response: ", json.toString());
 

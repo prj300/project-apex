@@ -8,7 +8,7 @@
     <string name="login">Login</string>
     <string name="password">********</string>
     <string name="register">Register</string>
-    <string name="title_activity_home">HomeActivity</string>
+    <string name="title_activity_home">My Apex</string>
     <string name="my_routes">My Routes</string>
     <string name="start_recording">Start Recording</string>
     <string name="find_routes">Find Route</string>
@@ -16,5 +16,6 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>
+    <string name="title_activity_map">Map</string>
 
 </resources>
