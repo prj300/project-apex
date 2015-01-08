@@ -1,4 +1,4 @@
-package apex.prj300.ie.apex.app;
+package apex.prj300.ie.apex.app.classes.models;
 
 /**
  * Created by Enda on 05/01/2015.

@@ -1,6 +1,7 @@
-package apex.prj300.ie.apex.app;
+package apex.prj300.ie.apex.app.classes.methods;
 
 import android.util.Log;
+import apex.prj300.ie.apex.app.classes.enums.HTTP;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
