@@ -31,6 +31,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.List;
 
+import apex.prj300.ie.apex.app.classes.methods.NewRouteDB;
+import apex.prj300.ie.apex.app.classes.models.Route;
+
 import static android.view.View.OnClickListener;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
 import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -44,7 +47,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     /**
      * Desired interval for location updates
      */
-    public static final long UPDATE_INTERVAL_IN_MS = 10000;
+    public static final long UPDATE_INTERVAL_IN_MS = 1000;
 
     /**
      * Fastest rate for location updates
@@ -81,7 +84,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     /**
      * ArrayList to save LatLng points
      */
-    List<LatLng> route = new ArrayList<LatLng>();
+    List<LatLng> route = new ArrayList<>();
     Polyline line;
 
     @Override
@@ -118,6 +121,7 @@ public class RecordRouteActivity extends FragmentActivity implements
         buildGoogleApiClient();
 
     }
+
 
     protected synchronized void buildGoogleApiClient() {
         Log.i(TAG, "Building GoogleApiClient");
@@ -279,7 +283,13 @@ public class RecordRouteActivity extends FragmentActivity implements
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         // save route to array
         route.add(latLng);
+
+        Route points = new Route(location.getLatitude(), location.getLongitude());
+        NewRouteDB db = new NewRouteDB(getApplicationContext());
+
+        db.addPosition(points);
     }
+
 
     private void updateUI(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());

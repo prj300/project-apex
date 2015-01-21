@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
-import apex.prj300.ie.apex.app.classes.methods.DatabaseHandler;
+import apex.prj300.ie.apex.app.classes.methods.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 
@@ -38,7 +38,7 @@ public class HomeActivity extends Activity
         super.onCreate(savedInstanceState);
 
         // checking if user is already logged in
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
         // row count
         int count = db.rowCount();
         if(count > 0) {
@@ -65,7 +65,7 @@ public class HomeActivity extends Activity
     }
 
     private void getUser() {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
 
         db.getUser();
 
@@ -118,7 +118,7 @@ public class HomeActivity extends Activity
     }
 
     private void signOut() {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
         db.resetTables();
 
         Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();

@@ -1,7 +1,6 @@
 package apex.prj300.ie.apex.app;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -12,10 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.NumberPicker;
 import android.widget.Toast;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
-import apex.prj300.ie.apex.app.classes.methods.DatabaseHandler;
+import apex.prj300.ie.apex.app.classes.methods.UserDB;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
 import org.apache.http.NameValuePair;
@@ -255,7 +253,7 @@ public class LoginActivity extends Activity {
 
     // method to login user in local SQLite Database
     private void Login(int id) {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
 
         // logout any previous user
         db.resetTables();
