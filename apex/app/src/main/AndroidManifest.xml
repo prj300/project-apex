@@ -41,8 +41,8 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".RecordActivity"
-            android:label="@string/title_activity_record" >
+            android:name=".RecordRouteActivity"
+            android:label="@string/title_activity_record_route" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="apex.prj300.ie.apex.app.HomeActivity" />

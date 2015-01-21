@@ -39,9 +39,9 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     // login url
-    private static final String LOGIN_URL = "http://192.168.1.14/android/apexdb/login_user.php";
+    private static final String LOGIN_URL = "http://192.168.1.11/android/apexdb/login_user.php";
     //register url
-    private static final String REGISTER_URL = "http://192.168.1.14/android/apexdb/create_user.php";
+    private static final String REGISTER_URL = "http://192.168.1.11/android/apexdb/create_user.php";
 
     // JSON response
     private static final String TAG_SUCCESS = "success";
@@ -233,6 +233,9 @@ public class LoginActivity extends Activity {
             mProgressDialog.dismiss();
             if(result == 1) {
                 popToast("Registration successful", "short");
+            }
+            else if(result == -1){
+                popToast("A user with this email already exists", "short");
             } else {
                 popToast("Registration failed", "short");
             }
@@ -264,7 +267,7 @@ public class LoginActivity extends Activity {
         // go to home activity
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
         startActivity(intent);
-
+        // finish up with this activity
         finish();
     }
 }

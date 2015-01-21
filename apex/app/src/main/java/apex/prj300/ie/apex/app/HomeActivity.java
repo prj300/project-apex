@@ -102,7 +102,7 @@ public class HomeActivity extends Activity
             case 2:
                 mTitle = getString(R.string.action_start_recording);
                 // start Map Activity
-                Intent intent = new Intent(getApplicationContext(), RecordActivity.class);
+                Intent intent = new Intent(getApplicationContext(), RecordRouteActivity.class);
                 startActivity(intent);
                 break;
             case 3:
