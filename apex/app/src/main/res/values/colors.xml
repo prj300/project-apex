@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#ff4dbce9</color>
-    <color name="text_color">#222222</color>
-    <color name="black_overlay">#66000000</color>
-    <color name="button_colour">#222222</color>
-    <color name="button_text_color">#F9F9F9</color>
+    <color name="apex_blue">#ff4dbce9</color>
+    <color name="apex_black">#222222</color>
+    <color name="apex_white">#F9F9F9</color>
 </resources>

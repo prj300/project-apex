@@ -100,18 +100,18 @@ public class HomeActivity extends Activity
                 mTitle = getString(R.string.title_activity_home);
                 break;
             case 2:
-                mTitle = getString(R.string.start_recording);
-                // start Maps Activity
-                Intent intent = new Intent(getApplicationContext(), MapActivity.class);
+                mTitle = getString(R.string.action_start_recording);
+                // start Map Activity
+                Intent intent = new Intent(getApplicationContext(), RecordActivity.class);
                 startActivity(intent);
                 break;
             case 3:
-                mTitle = getString(R.string.my_routes);
+                mTitle = getString(R.string.action_my_routes);
                 break;
             case 4:
-                mTitle = getString(R.string.find_routes);
+                mTitle = getString(R.string.action_find_routes);
             case 5:
-                mTitle = getString(R.string.sign_out);
+                mTitle = getString(R.string.action_sign_out);
                 signOut(); // sign out
                 break;
         }

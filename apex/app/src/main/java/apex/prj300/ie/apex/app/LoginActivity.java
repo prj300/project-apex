@@ -1,6 +1,7 @@
 package apex.prj300.ie.apex.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -11,8 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.Toast;
-import apex.prj300.ie.apex.app.classes.enums.HTTP;
+import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.methods.DatabaseHandler;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
@@ -37,16 +39,16 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     // login url
-    private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
+    private static final String LOGIN_URL = "http://192.168.1.14/android/apexdb/login_user.php";
     //register url
-    private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
+    private static final String REGISTER_URL = "http://192.168.1.14/android/apexdb/create_user.php";
 
     // JSON response
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_ID = "id";
 
     // Toast messages
-    private static final String TAG_MISSING_FIELDS = "Required field(s) missing.";
+    private static final String TAG_MISSING_FIELDS = "Required field(s) missing";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +90,6 @@ public class LoginActivity extends Activity {
     }
 
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -122,7 +123,7 @@ public class LoginActivity extends Activity {
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(LoginActivity.this);
-            mProgressDialog.setMessage("Creating new user...");
+            mProgressDialog.setMessage("Logging in...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();
@@ -135,12 +136,12 @@ public class LoginActivity extends Activity {
             String password = mPassword.getText().toString();
 
             try {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                List<NameValuePair> params = new ArrayList<>();
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
+                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
@@ -163,15 +164,15 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Pre-Execute", "");
+            Log.d("Success:", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
-                popToast("Logged in.", "short");
+                popToast("Logged in", "short");
             } else if(result == -1) {
-                popToast("Username/password incorrect.", "short");
+                popToast("Username/password incorrect", "short");
             } else {
-                popToast("Login failed.", "short");
+                popToast("Login failed", "short");
             }
 
         }
@@ -199,12 +200,12 @@ public class LoginActivity extends Activity {
             String password = mPassword.getText().toString();
 
             try {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                List<NameValuePair> params = new ArrayList<>();
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
+                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
@@ -227,15 +228,13 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Pre-Execute", "");
+            Log.d("Success: ", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
-                popToast("Logged in.", "short");
-            } else if(result == -1) {
-                popToast("Username/password incorrect.", "short");
+                popToast("Registration successful", "short");
             } else {
-                popToast("Login failed.", "short");
+                popToast("Registration failed", "short");
             }
 
         }

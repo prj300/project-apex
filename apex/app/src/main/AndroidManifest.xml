@@ -20,7 +20,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="apex.prj300.ie.apex.app.HomeActivity"
+            android:name=".HomeActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,7 +29,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="apex.prj300.ie.apex.app.LoginActivity"
+            android:name=".LoginActivity"
             android:label="@string/title_activity_home" >
         </activity>
 
@@ -41,8 +41,8 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name="apex.prj300.ie.apex.app.MapActivity"
-            android:label="@string/title_activity_map" >
+            android:name=".RecordActivity"
+            android:label="@string/title_activity_record" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="apex.prj300.ie.apex.app.HomeActivity" />
