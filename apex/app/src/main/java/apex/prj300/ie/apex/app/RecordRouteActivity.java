@@ -265,7 +265,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Log.i(TAG, String.valueOf(latLng));
+        Log.i(TAG, "Current Location: " + latLng);
         saveLocation(location);
     }
 
@@ -282,10 +282,12 @@ public class RecordRouteActivity extends FragmentActivity implements
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
-                .addAll(latLngPoints))
-                .width(5f)
+                .addAll(latLngPoints)
+                .width(6f)
                 .color(Color.BLUE)
                 .geodesic(true));
+
+        // move camera to updated position on map
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
         mMap.animateCamera(cameraUpdate);
 
