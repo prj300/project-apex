@@ -13,7 +13,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
-import apex.prj300.ie.apex.app.classes.methods.UserDB;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
 import org.apache.http.NameValuePair;

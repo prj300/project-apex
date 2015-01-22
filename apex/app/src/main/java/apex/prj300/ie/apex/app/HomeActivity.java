@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
-import apex.prj300.ie.apex.app.classes.methods.UserDB;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 

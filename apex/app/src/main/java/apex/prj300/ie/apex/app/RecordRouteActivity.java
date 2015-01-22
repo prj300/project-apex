@@ -1,19 +1,14 @@
 package apex.prj300.ie.apex.app;
 
 import android.graphics.Color;
-import android.hardware.SensorManager;
 import android.location.Location;
-import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -22,22 +17,18 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import apex.prj300.ie.apex.app.classes.methods.NewRouteDB;
-import apex.prj300.ie.apex.app.classes.models.Route;
+import apex.prj300.ie.apex.app.classes.models.LatLong;
 
 import static android.view.View.OnClickListener;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
 import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import static com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 
 public class RecordRouteActivity extends FragmentActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -84,7 +75,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     /**
      * ArrayList to save LatLng points
      */
-    List<LatLng> route = new ArrayList<>();
+    List<LatLong> route = new ArrayList<>();
     Polyline line;
 
     @Override
@@ -272,34 +263,30 @@ public class RecordRouteActivity extends FragmentActivity implements
      */
     @Override
     public void onLocationChanged(Location location) {
+        mCurrentLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         Log.i(TAG, String.valueOf(latLng));
-        mCurrentLocation = location;
-        saveRoute(mCurrentLocation);
-        updateUI(mCurrentLocation);
+        saveLocation(location);
+        updateUI(location);
     }
 
-    private void saveRoute(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+    private void saveLocation(Location location) {
+        LatLong latLong = new LatLong(location.getLatitude(), location.getLongitude());
         // save route to array
-        route.add(latLng);
-
-        Route points = new Route(location.getLatitude(), location.getLongitude());
-        NewRouteDB db = new NewRouteDB(getApplicationContext());
-
-        db.addPosition(points);
+        route.add(latLong);
+        Log.i(TAG, "Saving points: " + String.valueOf(latLong));
     }
 
 
     private void updateUI(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
-                .addAll(route)
+                .add(latLong)
                 .width(5f)
                 .color(Color.BLUE)
                 .geodesic(true));
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLong, 16);
         mMap.animateCamera(cameraUpdate);
 
     }
