@@ -73,9 +73,16 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected Boolean mRecordRoute;
 
     /**
+     * Tracks distance covered
+     */
+    protected float distance;
+    protected float totalDistance = 0;
+
+    /**
      * ArrayList to save LatLng points
      */
     List<LatLng> latLngPoints = new ArrayList<>();
+
     Polyline line;
 
     @Override
@@ -103,7 +110,7 @@ public class RecordRouteActivity extends FragmentActivity implements
         mButtonStop.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "Start Recording");
+                Log.i(TAG, "Stop Recording");
                 stopUpdatesButtonHandler();
             }
         });
@@ -266,18 +273,46 @@ public class RecordRouteActivity extends FragmentActivity implements
         mCurrentLocation = location;
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         Log.i(TAG, "Current Location: " + latLng);
+        trackDistance(location);
         saveLocation(location);
-    }
-
-    private void saveLocation(Location location) {
-        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
-        // save points to array
-        latLngPoints.add(latLong);
-        Log.i(TAG, "Saving points: " + latLong);
         updateUI(location);
     }
 
+    /**
+     * Track total distance covered
+     */
+    private void trackDistance(Location location) {
+        if(!latLngPoints.isEmpty()) {
+            Location lastLocation = new Location("LastLocation");
+            double latA = latLngPoints.get(latLngPoints.size()-1).latitude;
+            double lngA = latLngPoints.get(latLngPoints.size()-1).longitude;
 
+            lastLocation.setLatitude(latA);
+            lastLocation.setLongitude(lngA);
+
+            distance = lastLocation.distanceTo(location);
+            totalDistance += distance;
+            Log.i(TAG, "Distance (m): " + totalDistance);
+
+        }
+    }
+
+    /**
+     * Save location to array
+     */
+    private void saveLocation(Location location) {
+        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
+        // save points to array
+        Log.i(TAG, "Saving points: " + latLong);
+        latLngPoints.add(latLong);
+    }
+
+
+    /**
+     * Update UI in real-time
+     * Follow User as they move
+     * Show distance covered
+     */
     private void updateUI(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         // plot points on UI
@@ -295,6 +330,7 @@ public class RecordRouteActivity extends FragmentActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        stopLocationUpdates();
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
     }
