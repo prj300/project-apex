@@ -44,5 +44,11 @@
             android:layout_gravity="bottom"
             style="?android:attr/buttonBarButtonStyle"/>
 
+        <TextView
+            android:id="@+id/txtDistance"
+            android:textColor="@color/apex_white"
+            android:layout_width="100dp"
+            android:layout_height="50dp" />
+
     </LinearLayout>
 </RelativeLayout>

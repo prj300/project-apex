@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +66,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     // UI Widgets
     protected Button mButtonRecord;
     protected Button mButtonStop;
+    protected TextView mTextDistance;
 
     /**
      * Tracks status of location updates request
@@ -77,6 +80,10 @@ public class RecordRouteActivity extends FragmentActivity implements
      */
     protected float distance;
     protected float totalDistance = 0;
+
+    /**
+     * Formats decimals to two places
+     */
 
     /**
      * ArrayList to save LatLng points
@@ -94,6 +101,7 @@ public class RecordRouteActivity extends FragmentActivity implements
         // Locate the UI widgets
         mButtonRecord = (Button) findViewById(R.id.btnRecord);
         mButtonStop = (Button) findViewById(R.id.btnStop);
+        mTextDistance = (TextView) findViewById(R.id.txtDistance);
 
         mRequestingLocationUpdates = false;
         mRecordRoute = false;
@@ -228,15 +236,17 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected void onPause() {
         super.onPause();
         // Stop location updates but don't disconnect the GoogleApiClient
-        stopLocationUpdates();
+        // stopLocationUpdates();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        /*
         if(mGoogleApiClient.isConnected()) {
             mGoogleApiClient.disconnect();
         }
+        */
     }
 
     /**
@@ -284,14 +294,17 @@ public class RecordRouteActivity extends FragmentActivity implements
     private void trackDistance(Location location) {
         if(!latLngPoints.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
-            double latA = latLngPoints.get(latLngPoints.size()-1).latitude;
-            double lngA = latLngPoints.get(latLngPoints.size()-1).longitude;
+            double latA = latLngPoints.get(latLngPoints.size()-1).latitude; // previous latitude point in array
+            double lngA = latLngPoints.get(latLngPoints.size()-1).longitude; // previous longitude point in array
 
+            // set previous location parameters
             lastLocation.setLatitude(latA);
             lastLocation.setLongitude(lngA);
 
-            distance = lastLocation.distanceTo(location);
-            totalDistance += distance;
+            // find distance between two neighbouring points
+            // add to total distance
+            distance = lastLocation.distanceTo(location); // metres
+            totalDistance += distance; // total metres
             Log.i(TAG, "Distance (m): " + totalDistance);
 
         }
@@ -326,6 +339,14 @@ public class RecordRouteActivity extends FragmentActivity implements
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
         mMap.animateCamera(cameraUpdate);
 
+        if(totalDistance < 1000) {
+            // display in metres
+            mTextDistance.setText(String.format("%.1f (m)", totalDistance));
+        }
+        else {
+            // display in kilometres
+            mTextDistance.setText(String.format("%.2f (km)", totalDistance/1000));
+        }
     }
 
     @Override
