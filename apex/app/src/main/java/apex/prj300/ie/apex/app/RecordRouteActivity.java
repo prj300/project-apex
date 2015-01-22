@@ -75,7 +75,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     /**
      * ArrayList to save LatLng points
      */
-    List<LatLong> route = new ArrayList<>();
+    List<LatLng> latLngPoints = new ArrayList<>();
     Polyline line;
 
     @Override
@@ -267,26 +267,26 @@ public class RecordRouteActivity extends FragmentActivity implements
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         Log.i(TAG, String.valueOf(latLng));
         saveLocation(location);
-        updateUI(location);
     }
 
     private void saveLocation(Location location) {
-        LatLong latLong = new LatLong(location.getLatitude(), location.getLongitude());
-        // save route to array
-        route.add(latLong);
-        Log.i(TAG, "Saving points: " + String.valueOf(latLong));
+        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
+        // save points to array
+        latLngPoints.add(latLong);
+        Log.i(TAG, "Saving points: " + latLong);
+        updateUI(location);
     }
 
 
     private void updateUI(Location location) {
-        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
-                .add(latLong)
+                .addAll(latLngPoints))
                 .width(5f)
                 .color(Color.BLUE)
                 .geodesic(true));
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLong, 16);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
         mMap.animateCamera(cameraUpdate);
 
     }
