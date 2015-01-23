@@ -50,7 +50,7 @@ public class RecordRouteActivity extends FragmentActivity implements
 
     protected static final String TAG = "record-route-activity";
     protected static final String TAG_DIALOG_MESSAGE = "Do you wish to save this route?";
-    protected static final String TAG_DIALOG_TITLE = "Save";
+    protected static final String TAG_DIALOG_TITLE = "Save?";
     protected static final String TAG_DIALOG_SAVE = "OK";
     protected static final String TAG_DIALOG_DISCARD = "No thanks";
 

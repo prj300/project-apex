@@ -1,5 +1,6 @@
 package apex.prj300.ie.apex.app.classes.models;
 
+import java.sql.Time;
 import java.util.Date;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
@@ -14,14 +15,17 @@ public class User {
     public Grade grade;
     public int experience;
     public float totalDistance;
-    public Date totalTime;
+    public Time totalTime;
     public int totalCalories;
     public float maxSpeed;
     public float avgSpeed;
 
     public User() { }
-    
-    public User(int id, String email, Grade grade, int experience, float totalDistance, Date totalTime, int totalCalories, float maxSpeed, float avgSpeed) {
+
+    public User(int id, String email, Grade grade,
+                int experience, float totalDistance,
+                Time totalTime, int totalCalories,
+                float maxSpeed, float avgSpeed) {
         this.id = id;
         this.email = email;
         this.grade = grade;
@@ -73,11 +77,11 @@ public class User {
         this.totalDistance = totalDistance;
     }
 
-    public Date getTotalTime() {
+    public Time getTotalTime() {
         return totalTime;
     }
 
-    public void setTotalTime(Date totalTime) {
+    public void setTotalTime(Time totalTime) {
         this.totalTime = totalTime;
     }
 
