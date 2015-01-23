@@ -19,13 +19,11 @@ public class UserDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 10;
     // database name
     private static final String DATABASE_NAME = "apex";
     // login table name
     private static final String TABLE_LOGIN = "login";
-
-    //
     // login table columns
     private String KEY_ID = "id";
 
@@ -34,7 +32,9 @@ public class UserDB extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // creating tables
+    /**
+     * Create tables
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         // login table

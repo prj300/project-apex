@@ -37,9 +37,9 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     // login url
-    private static final String LOGIN_URL = "http://192.168.1.11/android/apexdb/login_user.php";
+    private static final String LOGIN_URL = "http://192.168.1.8/android/apexdb/login_user.php";
     //register url
-    private static final String REGISTER_URL = "http://192.168.1.11/android/apexdb/create_user.php";
+    private static final String REGISTER_URL = "http://192.168.1.8/android/apexdb/create_user.php";
 
     // JSON response
     private static final String TAG_SUCCESS = "success";
