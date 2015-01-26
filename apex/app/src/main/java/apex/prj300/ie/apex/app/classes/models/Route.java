@@ -25,24 +25,20 @@ public class Route {
     public Terrain terrain;
     public List<Double> latitudes;
     public List<Double> longitudes;
-    public Float distance; // km
-    public Date time;
+    public float distance; // km
     public Date dateCreated;
 
-    public Route() {
-
-    }
+    public Route() { }
     /**
      * Getter and setter methods
      */
-    public Route(int userID, Grade grade, Terrain terrain, List<Double> latitudes, List<Double> longitudes, Float distance, Date time, Date dateCreated) {
+    public Route(int userID, Grade grade, Terrain terrain, List<Double> latitudes, List<Double> longitudes, Float distance, Date dateCreated) {
         this.userID = userID;
         this.grade = grade;
         this.terrain = terrain;
         this.latitudes = latitudes;
         this.longitudes = longitudes;
         this.distance = distance;
-        this.time = time;
         this.dateCreated = dateCreated;
     }
 
@@ -92,14 +88,6 @@ public class Route {
 
     public void setDistance(Float distance) {
         this.distance = distance;
-    }
-
-    public Date getTime() {
-        return time;
-    }
-
-    public void setTime(Date time) {
-        this.time = time;
     }
 
     public Date getDateCreated() {

@@ -1,18 +1,15 @@
 package apex.prj300.ie.apex.app;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -28,8 +25,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -40,10 +35,10 @@ import java.util.List;
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.enums.Grade;
-import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.Route;
+import apex.prj300.ie.apex.app.classes.models.Results;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 import static android.view.View.OnClickListener;
@@ -65,6 +60,7 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected static final String TAG_DIALOG_TITLE = "Save";
     protected static final String TAG_DIALOG_SAVE = "OK";
     protected static final String TAG_DIALOG_DISCARD = "No thanks";
+    protected static final String TAG_DIALOG_TERRAIN = "No thanks";
 
     // Desired interval for location updates
     public static final long UPDATE_INTERVAL_IN_MS = 1000;
@@ -96,15 +92,17 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected float mDistance;
     protected float mTotalDistance = 0;
 
+    // Track currentSpeed
+    protected double mCurrentSpeed;
+
     // Timer
     protected Long mStartTime;
     protected Long mEndTime;
     protected Long mTimeDifference;
-    protected Date mTotalTime;
+    // protected Date mTotalTime;
 
     // Current date
     protected static Calendar mCalendar = Calendar.getInstance();
-    Date today;
 
     // ArrayList to save LatLng points
     protected List<LatLng> mRoute = new ArrayList<>();
@@ -118,9 +116,27 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected Terrain rTerrain;
     protected List<Double> rLatPoints = new ArrayList<>();
     protected List<Double> rLngPoints = new ArrayList<>();
-    protected Date rTime;
     protected Float rDistance = mTotalDistance;
     protected Date rDateCreated;
+
+    /**
+     * Route Result Model properties
+     */
+    // protected int mUserId;
+    protected int rRouteId;
+    protected int mExperience;
+    // protected float mDistance;
+    protected float mMaxSpeed = 0;
+    protected float mAvgSpeed = 0;
+    protected Date mTotalTime;
+    protected int mCaloriesLost;
+    // protected Date DateCreated;
+
+    /**
+     * User Model properties/context
+     */
+    protected User mUser;
+    protected int mId;
 
 
     @Override
@@ -128,7 +144,7 @@ public class RecordRouteActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record_route);
         setUpMapIfNeeded();
-
+        getUserContext();
         // Locate the UI widgets
         mButtonRecord = (Button) findViewById(R.id.btnRecord);
         mButtonStop = (Button) findViewById(R.id.btnStop);
@@ -154,8 +170,9 @@ public class RecordRouteActivity extends FragmentActivity implements
                 mEndTime = System.currentTimeMillis(); // end time
                 mTimeDifference = ((mEndTime - mStartTime) / 1000);
                 mTotalTime = new Date(mTimeDifference);
+                Log.i(TAG, "Total time: " + mTimeDifference);
                 stopUpdatesButtonHandler();
-                saveRouteDialog();
+                createSaveRouteDialog();
             }
         });
 
@@ -164,10 +181,22 @@ public class RecordRouteActivity extends FragmentActivity implements
 
     }
 
+    private void getUserContext() {
+        // open UserDB connection
+        UserDB db = new UserDB(this);
+
+        // Get User
+        mUser = db.getUser();
+        mId = mUser.getId();
+
+        // close connection
+        db.close();
+    }
+
     /**
      * Build dialog box asking user if they wish to save route
      */
-    private void saveRouteDialog() {
+    private void createSaveRouteDialog() {
         // Instantiate Alert Dialog Builder
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -178,7 +207,9 @@ public class RecordRouteActivity extends FragmentActivity implements
         builder.setPositiveButton(TAG_DIALOG_SAVE, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                createTerrainDialog();
                 saveRoute();
+                saveResults();
             }
         });
         // Discard
@@ -193,19 +224,65 @@ public class RecordRouteActivity extends FragmentActivity implements
         dialog.show();
     }
 
+    private void saveResults() {
+        UserDB db = new UserDB(this);
+        User user = db.getUser();
+
+        rRouteId = 1;
+        mExperience = 50;
+        mDistance = mTotalDistance;
+        Results results;
+    }
+
+    /**
+     * Dialog box to decide a route's terrain
+     */
+    private void createTerrainDialog() {
+        // Create String list and store Terrain enum items
+        List<String> terrainItems = new ArrayList<>();
+        terrainItems.add(Terrain.Dirt.toString());
+        terrainItems.add(Terrain.Road.toString());
+        terrainItems.add(Terrain.Gravel.toString());
+        final CharSequence[] terrains = terrainItems.toArray(new CharSequence[terrainItems.size()]);
+
+        // Instantiate Alert Dialog Builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(TAG_DIALOG_TERRAIN)
+                .setItems(terrains, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int choice) {
+                        // switch statement
+                        switch (choice) {
+                            case 0:
+                                rTerrain = Terrain.Dirt;
+                                break;
+                            case 1:
+                                rTerrain = Terrain.Road;
+                                break;
+                            case 2:
+                                rTerrain = Terrain.Gravel;
+                                break;
+                        }
+                    }
+                });
+    }
+
     /**
      * Save route to SQLite
      */
     private void saveRoute() {
+        rDateCreated = mCalendar.getTime();
         RouteDB db = new RouteDB(this);
         // drop previous data
         db.resetTables();
-        Route route = new Route(1, Grade.A, Terrain.Dirt, rLatPoints, rLngPoints, mTotalDistance, mTotalTime, today);
+        Route route = new Route(mId, Grade.A, rTerrain, rLatPoints, rLngPoints, mTotalDistance, rDateCreated);
         db.addRoute(route);
-        Log.i(TAG, "Route Saved Locally");
+        Log.i(TAG, "Route Saved Locally:" + route);
     }
 
-
+    /**
+     * Build Entry Point to Play Services
+     */
     protected synchronized void buildGoogleApiClient() {
         Log.i(TAG, "Building GoogleApiClient");
         mGoogleApiClient = new Builder(this)
@@ -358,30 +435,66 @@ public class RecordRouteActivity extends FragmentActivity implements
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Log.i(TAG, "Current Location: " + latLng);
-        trackDistance(location);
-        saveLocation(location);
-        updateUI(location);
+        trackDistance();
+        trackSpeed();
+        saveLocation();
+        updateUI();
+    }
+
+    /**
+     * Formula to track speed
+     */
+
+    private void trackSpeed() {
+        // formula taken from StackOverflow - http://bit.ly/1zQgFdz
+        double R = 6371000;
+        if(!mRoute.isEmpty()) {
+            double x1 = mRoute.get(mRoute.size() - 1).latitude; // previous latitude point in array
+            double y1 = mRoute.get(mRoute.size() - 1).longitude; // previous longitude point in array
+            double x2 = mCurrentLocation.getLatitude();
+            double y2 = mCurrentLocation.getLongitude();
+            // set previous location parameters
+            double dLat = x2 - x1;
+            double dLng = y2 - y1;
+            double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(x1) * Math.cos(x2) *
+                            Math.sin(dLng/2) * Math.sin(dLng/2);
+            mCurrentSpeed = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            // avg speed
+            long currentTime = System.currentTimeMillis();
+            mTimeDifference = ((currentTime - mStartTime) * 1000); // TODO: Fix conversions
+            mAvgSpeed = mTotalDistance/mTimeDifference;
+
+            Log.i(TAG, "Speed: " + mCurrentSpeed);
+            Log.i(TAG, "Average Speed: " + mAvgSpeed);
+        }
+
+        // max speed
+        if(mCurrentSpeed > mMaxSpeed) {
+            mMaxSpeed = (float) mCurrentSpeed;
+            Log.i(TAG, "Max Speed: " + mMaxSpeed);
+        }
+
     }
 
     /**
      * Track total distance covered
      */
-    private void trackDistance(Location location) {
+    private void trackDistance() {
         if(!mRoute.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
-            double latA = mRoute.get(mRoute.size()-1).latitude; // previous latitude point in array
-            double lngA = mRoute.get(mRoute.size()-1).longitude; // previous longitude point in array
+            double x = mRoute.get(mRoute.size()-1).latitude; // previous latitude point in array
+            double y = mRoute.get(mRoute.size()-1).longitude; // previous longitude point in array
 
             // set previous location parameters
-            lastLocation.setLatitude(latA);
-            lastLocation.setLongitude(lngA);
+            lastLocation.setLatitude(x);
+            lastLocation.setLongitude(y);
 
-            if(location != lastLocation) {
+            if(mCurrentLocation != lastLocation) {
                 // find distance between two neighbouring points
                 // add to total distance
-                mDistance = lastLocation.distanceTo(location); // metres
+                mDistance = lastLocation.distanceTo(mCurrentLocation); // metres
                 mTotalDistance += mDistance; // total metres
                 Log.i(TAG, "Distance (m): " + mTotalDistance);
             }
@@ -392,14 +505,14 @@ public class RecordRouteActivity extends FragmentActivity implements
     /**
      * Save location to array
      */
-    private void saveLocation(Location location) {
-        LatLng latLong = new LatLng(location.getLatitude(), location.getLongitude());
+    private void saveLocation() {
+        LatLng latLong = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         // save points to array
         Log.i(TAG, "Saving points: " + latLong);
         mRoute.add(latLong);
 
-        rLatPoints.add(location.getLatitude());
-        rLngPoints.add(location.getLongitude());
+        rLatPoints.add(mCurrentLocation.getLatitude());
+        rLngPoints.add(mCurrentLocation.getLongitude());
     }
 
 
@@ -408,8 +521,9 @@ public class RecordRouteActivity extends FragmentActivity implements
      * Follow User as they move
      * Show distance covered
      */
-    private void updateUI(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+    private void updateUI() {
+        LatLng latLng = new LatLng(
+                mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
                 .addAll(mRoute)

@@ -21,7 +21,7 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 20;
+    private static final int DATABASE_VERSION = 22;
     // database name
     private static final String DATABASE_NAME = "routedb";
     // route table name
@@ -30,7 +30,6 @@ public class RouteDB extends SQLiteOpenHelper {
     private static String KEY_USER_ID = "userid";
     private static String KEY_GRADE = "grade";
     private static String KEY_TERRAIN = "terrain";
-    private static String KEY_TIME = "time";
     private static String KEY_DISTANCE = "distance";
     private static String KEY_LATS = "lats";
     private static String KEY_LONGS = "longs";
@@ -50,7 +49,6 @@ public class RouteDB extends SQLiteOpenHelper {
                 + KEY_USER_ID + " INTEGER,"
                 + KEY_GRADE + " TEXT,"
                 + KEY_TERRAIN + " TEXT,"
-                + KEY_TIME + " TEXT,"
                 + KEY_LATS + " TEXT,"
                 + KEY_LONGS + " TEXT,"
                 + KEY_DISTANCE + " FLOAT,"
@@ -81,13 +79,12 @@ public class RouteDB extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_USER_ID, route.getUserID());
-        values.put(KEY_GRADE, String.valueOf(route.getGrade()));
-        values.put(KEY_TERRAIN, String.valueOf(route.getTerrain()));
-        values.put(KEY_TIME, String.valueOf(route.getTime()));
+        values.put(KEY_GRADE, gson.toJson(route.getGrade()));
+        values.put(KEY_TERRAIN, gson.toJson(route.getTerrain()));
         values.put(KEY_LATS, gson.toJson(route.getLatitudes()));
         values.put(KEY_LONGS, gson.toJson(route.getLongitudes()));
         values.put(KEY_DISTANCE, route.getDistance());
-        values.put(KEY_DATE_CREATED, String.valueOf(route.getDateCreated()));
+        values.put(KEY_DATE_CREATED, gson.toJson(route.getDateCreated()));
 
         db.insert(TABLE_ROUTE, null, values);
         db.close(); // close connection to database

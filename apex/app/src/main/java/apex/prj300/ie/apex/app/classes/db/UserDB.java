@@ -22,7 +22,7 @@ public class UserDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 22;
+    private static final int DATABASE_VERSION = 23;
     // database name
     private static final String DATABASE_NAME = "userdb";
     // user table name
@@ -129,9 +129,10 @@ public class UserDB extends SQLiteOpenHelper {
                     Time.valueOf(cursor.getString(5)), cursor.getInt(6),
                     cursor.getFloat(7), cursor.getFloat(8));
         }
+
+        db.close();
         // return user
         return user;
-
     }
 
 
