@@ -34,6 +34,7 @@ public class LoginActivity extends Activity {
     // progress dialog for AsyncTask
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
+    private JSONObject json;
 
     EditText mEmail;
     EditText mPassword;
@@ -41,13 +42,17 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     // login url
-    private static final String LOGIN_URL = "http://192.168.1.8/android/apexdb/login_user.php";
+    private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
     //register url
-    private static final String REGISTER_URL = "http://192.168.1.8/android/apexdb/create_user.php";
+    private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
+
+    // indicates success of JSON response
+    private int indicator = 0;
 
     /**
      * User params
      */
+    private User user;
     private int id;
     private String password;
     private String email;
@@ -64,7 +69,6 @@ public class LoginActivity extends Activity {
      */
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_ID = "id";
-    private static final String TAG_EMAIL = "email";
     private static final String TAG_GRADE = "grade";
     private static final String TAG_EXPERIENCE = "experience";
     private static final String TAG_TOTAL_TIME = "totaltime";
@@ -141,8 +145,7 @@ public class LoginActivity extends Activity {
     /**
      * Background task for logging in
      */
-    private class LoginUser extends AsyncTask<String, Void, Integer> {
-
+    private class LoginUser extends AsyncTask<User, Void, Integer> {
 
         // before starting task show Progress Dialog
         @Override
@@ -156,8 +159,8 @@ public class LoginActivity extends Activity {
         }
 
         @Override
-        protected Integer doInBackground(String... args) {
-            int indicator = 0;
+        protected Integer doInBackground(User...args) {
+
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
@@ -167,20 +170,12 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
-                // check for success tag
-                try {
-                    if (indicator == 1) {
-                        GetJSONNodes(json);
-                        Login();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -193,15 +188,18 @@ public class LoginActivity extends Activity {
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
-                popToast("Logged in", "short");
+                try {
+                    GetJSONNodes(json);
+                    popToast("Logged in as ", email);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             } else if(result == -1) {
                 popToast("Username/password incorrect", "short");
             } else {
                 popToast("Login failed", "short");
             }
-
         }
-
     }
 
     /**
@@ -209,7 +207,7 @@ public class LoginActivity extends Activity {
      */
     private void Login() {
         // Instantiate and build a new user
-        User user = new User(id, email, grade,
+        user = new User(id, email, grade,
                 experience, totalDistance,
                 totalTime, totalCalories,
                 maxSpeed, avgSpeed);
@@ -225,7 +223,10 @@ public class LoginActivity extends Activity {
         Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
 
+        Log.i("Logged in as ",  email);
         finish();
+
+        db.close();
 
     }
 
@@ -243,12 +244,15 @@ public class LoginActivity extends Activity {
         maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
         avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
 
+        // Login User
+        Login();
+
     }
 
     /**
      * Background task for registering
      */
-    private class RegisterUser extends AsyncTask<String, Void, Integer> {
+    private class RegisterUser extends AsyncTask<User, Void, Integer> {
 
         @Override
         protected void onPreExecute() {
@@ -260,8 +264,9 @@ public class LoginActivity extends Activity {
             mProgressDialog.show();
         }
 
-        protected Integer doInBackground(String... args) {
-            int indicator = 0;
+        @Override
+        protected Integer doInBackground(User... args) {
+
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
@@ -271,21 +276,11 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
-                // check for success tag
-                try {
-                    if (indicator == 1) {
-                        // registration successful
-                        GetJSONNodes(json);
-                        Login();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -298,10 +293,17 @@ public class LoginActivity extends Activity {
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
+                try {
+                    GetJSONNodes(json);
+                    popToast("Registration successful", "short");
+                    Log.i("Registered as ", email);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 popToast("Registration successful", "short");
             }
             else if(result == -1){
-                popToast("A user with this email already exists", "short");
+                popToast("A user with email " + email + " already exists", "short");
             } else {
                 popToast("Registration failed", "short");
             }

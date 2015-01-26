@@ -5,5 +5,5 @@ package apex.prj300.ie.apex.app.classes.enums;
  */
 public enum Terrain {
 
-    Road, Gravel, Dirt, Mountain
+    Road, Gravel, Dirt
 }

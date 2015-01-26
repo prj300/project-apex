@@ -42,8 +42,8 @@
 
         <activity
             android:name=".RecordRouteActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_record_route" >
+            android:label="@string/title_activity_record_route"
+            android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="apex.prj300.ie.apex.app.HomeActivity" />

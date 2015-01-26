@@ -3,7 +3,9 @@ package apex.prj300.ie.apex.app.classes.models;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
@@ -21,19 +23,29 @@ public class Route {
     // model attributes
     public Grade grade;
     public Terrain terrain;
-    public String route;
+    public List<Double> latitudes;
+    public List<Double> longitudes;
     public Float distance; // km
     public Date time;
     public Date dateCreated;
 
-    /**
-     * Gson converts route array to JSON
-     */
-    Gson gson = new Gson();
-    public String jsonRoute = gson.toJson(route);
+    public Route() {
+
+    }
     /**
      * Getter and setter methods
      */
+    public Route(int userID, Grade grade, Terrain terrain, List<Double> latitudes, List<Double> longitudes, Float distance, Date time, Date dateCreated) {
+        this.userID = userID;
+        this.grade = grade;
+        this.terrain = terrain;
+        this.latitudes = latitudes;
+        this.longitudes = longitudes;
+        this.distance = distance;
+        this.time = time;
+        this.dateCreated = dateCreated;
+    }
+
     public int getUserID() {
         return userID;
     }
@@ -58,12 +70,20 @@ public class Route {
         this.terrain = terrain;
     }
 
-    public String getRoute() {
-        return route;
+    public List<Double> getLatitudes() {
+        return latitudes;
     }
 
-    public void setRoute(String route) {
-        this.route = route;
+    public void setLatitudes(List<Double> latitudes) {
+        this.latitudes = latitudes;
+    }
+
+    public List<Double> getLongitudes() {
+        return longitudes;
+    }
+
+    public void setLongitudes(List<Double> longitudes) {
+        this.longitudes = longitudes;
     }
 
     public Float getDistance() {
@@ -89,23 +109,5 @@ public class Route {
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
     }
-
-    /**
-     * Constructor methods
-     */
-
-    // constructor
-    public Route() { }
-
-    // default constructor
-    public Route(int userID, Grade grade, Terrain terrain, String route, Float distance, Date time, Date dateCreated) {
-        this.userID = userID;
-        this.grade = grade;
-        this.terrain = terrain;
-        this.route = route;
-        this.distance = distance;
-        this.time = time;
-        this.dateCreated = dateCreated;
-    }
-
 }
+

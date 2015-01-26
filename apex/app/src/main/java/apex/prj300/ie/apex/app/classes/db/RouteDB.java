@@ -21,18 +21,19 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 20;
     // database name
-    private static final String DATABASE_NAME = "apex";
+    private static final String DATABASE_NAME = "routedb";
     // route table name
-    private static final String TABLE_ROUTE = "route";
+    private static final String TABLE_ROUTE = "routetbl";
     // route details table column names
     private static String KEY_USER_ID = "userid";
     private static String KEY_GRADE = "grade";
     private static String KEY_TERRAIN = "terrain";
     private static String KEY_TIME = "time";
     private static String KEY_DISTANCE = "distance";
-    private static String KEY_ROUTE = "route";
+    private static String KEY_LATS = "lats";
+    private static String KEY_LONGS = "longs";
     private static String KEY_DATE_CREATED = "datecreated";
 
     public RouteDB(Context context) {
@@ -50,7 +51,8 @@ public class RouteDB extends SQLiteOpenHelper {
                 + KEY_GRADE + " TEXT,"
                 + KEY_TERRAIN + " TEXT,"
                 + KEY_TIME + " TEXT,"
-                + KEY_ROUTE + " TEXT,"
+                + KEY_LATS + " TEXT,"
+                + KEY_LONGS + " TEXT,"
                 + KEY_DISTANCE + " FLOAT,"
                 + KEY_DATE_CREATED + " DATE" + ")";
         // execute sql
@@ -74,12 +76,16 @@ public class RouteDB extends SQLiteOpenHelper {
     public void addRoute(Route route) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        Gson gson = new Gson();
+        // Convert route array to parseable json string
+
         ContentValues values = new ContentValues();
         values.put(KEY_USER_ID, route.getUserID());
         values.put(KEY_GRADE, String.valueOf(route.getGrade()));
         values.put(KEY_TERRAIN, String.valueOf(route.getTerrain()));
         values.put(KEY_TIME, String.valueOf(route.getTime()));
-        values.put(KEY_ROUTE, route.getRoute());
+        values.put(KEY_LATS, gson.toJson(route.getLatitudes()));
+        values.put(KEY_LONGS, gson.toJson(route.getLongitudes()));
         values.put(KEY_DISTANCE, route.getDistance());
         values.put(KEY_DATE_CREATED, String.valueOf(route.getDateCreated()));
 

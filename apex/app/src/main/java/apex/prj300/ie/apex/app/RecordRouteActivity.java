@@ -1,16 +1,18 @@
 package apex.prj300.ie.apex.app;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -26,20 +28,23 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Timer;
 
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
-import apex.prj300.ie.apex.app.classes.models.LatLong;
+import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.Route;
+import apex.prj300.ie.apex.app.classes.models.User;
 
 import static android.view.View.OnClickListener;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
@@ -48,36 +53,33 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 public class RecordRouteActivity extends FragmentActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
-    protected static final String TAG = "record-route-activity";
+    JSONParser jsonParser = new JSONParser();
+    Gson gson = new Gson();
+    private JSONObject json;
+
+    /**
+     * Static Variables
+     */
+    protected static final String TAG = "RecordRouteActivity";
     protected static final String TAG_DIALOG_MESSAGE = "Do you wish to save this route?";
-    protected static final String TAG_DIALOG_TITLE = "Save?";
+    protected static final String TAG_DIALOG_TITLE = "Save";
     protected static final String TAG_DIALOG_SAVE = "OK";
     protected static final String TAG_DIALOG_DISCARD = "No thanks";
 
-    /**
-     * Desired interval for location updates
-     */
+    // Desired interval for location updates
     public static final long UPDATE_INTERVAL_IN_MS = 1000;
 
-    /**
-     * Fastest rate for location updates
-     */
+    // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_IN_MS = UPDATE_INTERVAL_IN_MS / 2;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
-    /**
-     * Entry point to Google Play Services
-     */
+    // Entry point to Google Play Services
     protected GoogleApiClient mGoogleApiClient;
 
-    /**
-     * Stores parameters for requests to FusedLocationProviderApi
-     */
+    // Stores parameters for requests to FusedLocationProviderApi;
     protected LocationRequest mLocationRequest;
 
-    /**
-     * Represents geographical location
-     */
+    // Represents geographical location
     protected Location mCurrentLocation;
 
     // UI Widgets
@@ -85,39 +87,41 @@ public class RecordRouteActivity extends FragmentActivity implements
     protected Button mButtonStop;
     protected TextView mTextDistance;
 
-    /**
-     * Tracks status of location updates request
-     */
+    // Tracks status of location updates request
     protected Boolean mRequestingLocationUpdates;
 
     protected Boolean mRecordRoute;
 
-    /**
-     * Tracks distance covered
-     */
+    // Tracks distance covered
     protected float mDistance;
     protected float mTotalDistance = 0;
 
-    /**
-     * Timer
-     */
+    // Timer
     protected Long mStartTime;
     protected Long mEndTime;
     protected Long mTimeDifference;
     protected Date mTotalTime;
 
-    /**
-     * Current date
-     */
-    protected Calendar mCalendar = Calendar.getInstance();
-    Date today = mCalendar.getTime();
+    // Current date
+    protected static Calendar mCalendar = Calendar.getInstance();
+    Date today;
 
-    /**
-     * ArrayList to save LatLng points
-     */
+    // ArrayList to save LatLng points
     protected List<LatLng> mRoute = new ArrayList<>();
 
     protected Polyline line;
+
+    /**
+     * Route Model properties
+     */
+    protected Grade rGrade;
+    protected Terrain rTerrain;
+    protected List<Double> rLatPoints = new ArrayList<>();
+    protected List<Double> rLngPoints = new ArrayList<>();
+    protected Date rTime;
+    protected Float rDistance = mTotalDistance;
+    protected Date rDateCreated;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,10 +200,7 @@ public class RecordRouteActivity extends FragmentActivity implements
         RouteDB db = new RouteDB(this);
         // drop previous data
         db.resetTables();
-        // Gson converts objects to JSON
-        Gson gson = new Gson();
-        String jsonRoute = gson.toJson(mRoute);
-        Route route = new Route(1, Grade.A, Terrain.Dirt, jsonRoute, mTotalDistance, mTotalTime, today);
+        Route route = new Route(1, Grade.A, Terrain.Dirt, rLatPoints, rLngPoints, mTotalDistance, mTotalTime, today);
         db.addRoute(route);
         Log.i(TAG, "Route Saved Locally");
     }
@@ -377,11 +378,13 @@ public class RecordRouteActivity extends FragmentActivity implements
             lastLocation.setLatitude(latA);
             lastLocation.setLongitude(lngA);
 
-            // find distance between two neighbouring points
-            // add to total distance
-            mDistance = lastLocation.distanceTo(location); // metres
-            mTotalDistance += mDistance; // total metres
-            Log.i(TAG, "Distance (m): " + mTotalDistance);
+            if(location != lastLocation) {
+                // find distance between two neighbouring points
+                // add to total distance
+                mDistance = lastLocation.distanceTo(location); // metres
+                mTotalDistance += mDistance; // total metres
+                Log.i(TAG, "Distance (m): " + mTotalDistance);
+            }
 
         }
     }
@@ -394,6 +397,9 @@ public class RecordRouteActivity extends FragmentActivity implements
         // save points to array
         Log.i(TAG, "Saving points: " + latLong);
         mRoute.add(latLong);
+
+        rLatPoints.add(location.getLatitude());
+        rLngPoints.add(location.getLongitude());
     }
 
 
