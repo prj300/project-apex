@@ -12,8 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import apex.prj300.ie.apex.app.classes.enums.HTTP;
-import apex.prj300.ie.apex.app.classes.methods.DatabaseHandler;
+
+import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
 import org.apache.http.NameValuePair;
@@ -22,7 +24,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.sql.Time;
 
 
 public class LoginActivity extends Activity {
@@ -30,6 +34,7 @@ public class LoginActivity extends Activity {
     // progress dialog for AsyncTask
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
+    private JSONObject json;
 
     EditText mEmail;
     EditText mPassword;
@@ -41,12 +46,39 @@ public class LoginActivity extends Activity {
     //register url
     private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
 
-    // JSON response
+    // indicates success of JSON response
+    private int indicator = 0;
+
+    /**
+     * User params
+     */
+    private User user;
+    private int id;
+    private String password;
+    private String email;
+    private Grade grade;
+    private int experience;
+    private float totalDistance;
+    private Time totalTime;
+    private int totalCalories;
+    private float maxSpeed;
+    private float avgSpeed;
+
+    /**
+     * JSON Node Responses
+     */
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_ID = "id";
+    private static final String TAG_GRADE = "grade";
+    private static final String TAG_EXPERIENCE = "experience";
+    private static final String TAG_TOTAL_TIME = "totaltime";
+    private static final String TAG_TOTAL_DISTANCE = "totaldistance";
+    private static final String TAG_TOTAL_CALORIES = "totalcalories";
+    private static final String TAG_MAX_SPEED = "maxspeed";
+    private static final String TAG_AVG_SPEED = "avgspeed";
 
     // Toast messages
-    private static final String TAG_MISSING_FIELDS = "Required field(s) missing.";
+    private static final String TAG_MISSING_FIELDS = "Required field(s) missing";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +120,6 @@ public class LoginActivity extends Activity {
     }
 
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -114,47 +145,37 @@ public class LoginActivity extends Activity {
     /**
      * Background task for logging in
      */
-    private class LoginUser extends AsyncTask<String, Void, Integer> {
-
+    private class LoginUser extends AsyncTask<User, Void, Integer> {
 
         // before starting task show Progress Dialog
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             mProgressDialog = new ProgressDialog(LoginActivity.this);
-            mProgressDialog.setMessage("Creating new user...");
+            mProgressDialog.setMessage("Logging in...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();
         }
 
         @Override
-        protected Integer doInBackground(String... args) {
-            int indicator = 0;
-            String email = mEmail.getText().toString();
-            String password = mPassword.getText().toString();
+        protected Integer doInBackground(User...args) {
+
+            email = mEmail.getText().toString();
+            password = mPassword.getText().toString();
 
             try {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                List<NameValuePair> params = new ArrayList<>();
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(LOGIN_URL, HTTP.POST, params);
+                json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
-                // check for success tag
-                try {
-                    if (indicator == 1) {
-                        // registration successful
-                        int id = json.getInt(TAG_ID);
-                        Login(id);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -163,25 +184,75 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Pre-Execute", "");
+            Log.d("Success:", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
-                popToast("Logged in.", "short");
+                try {
+                    GetJSONNodes(json);
+                    popToast("Logged in as ", email);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             } else if(result == -1) {
-                popToast("Username/password incorrect.", "short");
+                popToast("Username/password incorrect", "short");
             } else {
-                popToast("Login failed.", "short");
+                popToast("Login failed", "short");
             }
-
         }
+    }
+
+    /**
+     * Login User
+     */
+    private void Login() {
+        // Instantiate and build a new user
+        user = new User(id, email, grade,
+                experience, totalDistance,
+                totalTime, totalCalories,
+                maxSpeed, avgSpeed);
+
+        // instantiate User Database to store User's details locally
+        UserDB db = new UserDB(this);
+
+        // clear any previous data that may be in the database
+        db.resetTables();
+        db.addUser(user);
+
+        // Move to home page
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+
+        Log.i("Logged in as ",  email);
+        finish();
+
+        db.close();
+
+    }
+
+    /**
+     * Retrieve JSON Response nodes of user
+     */
+    private void GetJSONNodes(JSONObject json) throws JSONException {
+        // registration successful
+        id = json.getInt(TAG_ID);
+        grade = Grade.valueOf(json.getString(TAG_GRADE));
+        experience = json.getInt(TAG_EXPERIENCE);
+        totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
+        totalTime = Time.valueOf(json.getString(TAG_TOTAL_TIME));
+        totalCalories = json.getInt(TAG_TOTAL_CALORIES);
+        maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
+        avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
+
+        // Login User
+        Login();
 
     }
 
     /**
      * Background task for registering
      */
-    private class RegisterUser extends AsyncTask<String, Void, Integer> {
+    private class RegisterUser extends AsyncTask<User, Void, Integer> {
 
         @Override
         protected void onPreExecute() {
@@ -193,32 +264,23 @@ public class LoginActivity extends Activity {
             mProgressDialog.show();
         }
 
-        protected Integer doInBackground(String... args) {
-            int indicator = 0;
-            String email = mEmail.getText().toString();
-            String password = mPassword.getText().toString();
+        @Override
+        protected Integer doInBackground(User... args) {
+
+            email = mEmail.getText().toString();
+            password = mPassword.getText().toString();
 
             try {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                List<NameValuePair> params = new ArrayList<>();
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                JSONObject json = jsonParser.makeHttpRequest(REGISTER_URL, HTTP.POST, params);
+                json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
-                // check for success tag
-                try {
-                    if (indicator == 1) {
-                        // registration successful
-                        int id = json.getInt(TAG_ID);
-                        Login(id);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -227,15 +289,23 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Pre-Execute", "");
+            Log.d("Success: ", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
-                popToast("Logged in.", "short");
-            } else if(result == -1) {
-                popToast("Username/password incorrect.", "short");
+                try {
+                    GetJSONNodes(json);
+                    popToast("Registration successful", "short");
+                    Log.i("Registered as ", email);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                popToast("Registration successful", "short");
+            }
+            else if(result == -1){
+                popToast("A user with email " + email + " already exists", "short");
             } else {
-                popToast("Login failed.", "short");
+                popToast("Registration failed", "short");
             }
 
         }
@@ -249,23 +319,5 @@ public class LoginActivity extends Activity {
         } else {
             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
         }
-    }
-
-    // method to login user in local SQLite Database
-    private void Login(int id) {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-
-        // logout any previous user
-        db.resetTables();
-        // add user to table
-        //Toast.makeText(getApplicationContext(), user.getId(), Toast.LENGTH_LONG).show();
-        db.addUser(new User(id));
-        Log.d("User: ", Integer.toString(id));
-
-        // go to home activity
-        Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
-        startActivity(intent);
-
-        finish();
     }
 }

@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">"Apex "</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Apex</string>
     <string name="action_settings">Settings</string>
-    <string name="email">Email</string>
-    <string name="login">Login</string>
-    <string name="password">********</string>
-    <string name="register">Register</string>
+    <string name="text_email">Email</string>
+    <string name="action_login">Login</string>
+    <string name="text_password">********</string>
+    <string name="action_register">Register</string>
     <string name="title_activity_home">My Apex</string>
-    <string name="my_routes">My Routes</string>
-    <string name="start_recording">Start Recording</string>
-    <string name="find_routes">Find Route</string>
-    <string name="sign_out">Sign Out</string>
+    <string name="action_my_routes">My Routes</string>
+    <string name="action_start_recording">Start Recording</string>
+    <string name="action_find_routes">Find Route</string>
+    <string name="action_sign_out">Sign Out</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="action_example">Example action</string>
-    <string name="title_activity_map">Map</string>
+    <string name="dialog_kilometres_per_week">How would you kilometres would you cycle per week?</string>
+    <string name="title_activity_record">Record Route</string>
+    <string name="title_activity_record_route">Map</string>
 
 </resources>

@@ -15,7 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
-import apex.prj300.ie.apex.app.classes.methods.DatabaseHandler;
+
+import java.sql.Time;
+
+import apex.prj300.ie.apex.app.classes.db.UserDB;
+import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 
@@ -32,19 +36,33 @@ public class HomeActivity extends Activity
      */
     private CharSequence mTitle;
 
+    // count to check if user is logged in
+    private int count;
+    /**
+     * User params
+     */
+    private int id;
+    private String password;
+    private String email;
+    private Grade grade;
+    private int experience;
+    private float totalDistance;
+    private Time totalTime;
+    private int totalCalories;
+    private float maxSpeed;
+    private float avgSpeed;
+    private User user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // checking if user is already logged in
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-        // row count
-        int count = db.rowCount();
+        checkLoginStatus();
+        // if user exists
         if(count > 0) {
             setContentView(R.layout.activity_home);
 
-            // if row exists
             mNavigationDrawerFragment = (NavigationDrawerFragment)
                     getFragmentManager().findFragmentById(R.id.navigation_drawer);
             mTitle = getTitle();
@@ -54,8 +72,6 @@ public class HomeActivity extends Activity
                     R.id.navigation_drawer,
                     (DrawerLayout) findViewById(R.id.drawer_layout));
 
-            // get user details
-            getUser();
         } else {
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
@@ -64,16 +80,22 @@ public class HomeActivity extends Activity
         }
     }
 
+    private void checkLoginStatus() {
+        // checking if user is already logged in
+        UserDB db = new UserDB(getApplicationContext());
+        // row count
+        count = db.rowCount();
+
+        if(count > 0) {
+            getUser();
+        }
+    }
+
     private void getUser() {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
 
-        db.getUser();
-
-        User user = new User();
-        int id = user.getId();
-
-        String idm = Integer.toString(id);
-        Log.d("ID: ", idm);
+        user = db.getUser();
+        Log.i("User: ", user.getEmail());
     }
 
     private void popToast(String message, String length) {
@@ -100,25 +122,25 @@ public class HomeActivity extends Activity
                 mTitle = getString(R.string.title_activity_home);
                 break;
             case 2:
-                mTitle = getString(R.string.start_recording);
-                // start Maps Activity
-                Intent intent = new Intent(getApplicationContext(), MapActivity.class);
+                mTitle = getString(R.string.action_start_recording);
+                // start Map Activity
+                Intent intent = new Intent(getApplicationContext(), RecordRouteActivity.class);
                 startActivity(intent);
                 break;
             case 3:
-                mTitle = getString(R.string.my_routes);
+                mTitle = getString(R.string.action_my_routes);
                 break;
             case 4:
-                mTitle = getString(R.string.find_routes);
+                mTitle = getString(R.string.action_find_routes);
             case 5:
-                mTitle = getString(R.string.sign_out);
+                mTitle = getString(R.string.action_sign_out);
                 signOut(); // sign out
                 break;
         }
     }
 
     private void signOut() {
-        DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+        UserDB db = new UserDB(getApplicationContext());
         db.resetTables();
 
         Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();
