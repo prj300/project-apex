@@ -1,0 +1,41 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_centerHorizontal="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/pager"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        tools:context="apex.prj300.ie.apex.app.NewRouteActivity" />
+
+    <LinearLayout
+        android:background="@color/apex_black"
+        android:id="@+id/buttons"
+        android:layout_width="fill_parent"
+        android:layout_height="130dip"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true">
+
+    <ImageView
+        android:background="@null"
+        android:id="@+id/btnRecord"
+        android:layout_width="100dip"
+        android:layout_height="100dip"
+        android:layout_margin="0dip"
+        android:src="@drawable/button_record" />
+
+    <ImageView
+        android:background="@null"
+        android:id="@+id/btnPause"
+        android:layout_width="100dip"
+        android:layout_height="100dip"
+        android:layout_margin="4dip"
+        android:src="@drawable/button_pause" />
+
+    </LinearLayout>
+
+</RelativeLayout>

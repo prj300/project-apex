@@ -222,7 +222,7 @@ public class LoginActivity extends Activity {
         Intent intent = new Intent(this, HomeActivity.class);
         startActivity(intent);
 
-        Log.i("Logged in as ",  email);
+        Log.i(TAG, "Logged in as " +  email);
         finish();
 
         db.close();
