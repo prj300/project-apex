@@ -22,21 +22,20 @@ public class UserDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 23;
+    private static final int DATABASE_VERSION = 30;
     // database name
-    private static final String DATABASE_NAME = "userdb";
+    private static final String DATABASE_NAME = "userDb";
     // user table name
-    private static final String TABLE_USER = "usertbl";
+    private static final String TABLE_USER = "userTbl";
     // table columns
     private static String KEY_ID = "id";
     private static String KEY_EMAIL = "email";
     private static String KEY_GRADE = "grade";
     private static String KEY_EXPERIENCE = "experience";
-    private static String KEY_TOTAL_DISTANCE = "totaldistance";
-    private static String KEY_TOTAL_TIME = "totaltime";
-    private static String KEY_TOTAL_CALORIES = "totalcalories";
-    private static String KEY_MAX_SPEED = "maxspeed";
-    private static String KEY_AVG_SPEED = "avgspeed";
+    private static String KEY_TOTAL_DISTANCE = "totalDistance";
+    private static String KEY_TOTAL_TIME = "totalTime";
+    private static String KEY_MAX_SPEED = "maxSpeed";
+    private static String KEY_AVG_SPEED = "avgSpeed";
 
     // constructor
     public UserDB(Context context) {
@@ -56,7 +55,6 @@ public class UserDB extends SQLiteOpenHelper {
                 + KEY_EXPERIENCE + " INTEGER,"
                 + KEY_TOTAL_DISTANCE + " FLOAT,"
                 + KEY_TOTAL_TIME + " TEXT,"
-                + KEY_TOTAL_CALORIES + " INTEGER,"
                 + KEY_MAX_SPEED + " FLOAT,"
                 + KEY_AVG_SPEED + " FLOAT" + ")";
 
@@ -100,9 +98,8 @@ public class UserDB extends SQLiteOpenHelper {
         values.put(KEY_EXPERIENCE, user.getExperience()); // 3
         values.put(KEY_TOTAL_DISTANCE, user.getTotalDistance()); // 4
         values.put(KEY_TOTAL_TIME, String.valueOf(user.getTotalTime())); // 5
-        values.put(KEY_TOTAL_CALORIES, user.getTotalCalories()); // 6
-        values.put(KEY_MAX_SPEED, user.getMaxSpeed()); // 7
-        values.put(KEY_AVG_SPEED, user.getAvgSpeed()); //8
+        values.put(KEY_MAX_SPEED, user.getMaxSpeed()); // 6
+        values.put(KEY_AVG_SPEED, user.getAvgSpeed()); // 7
 
         // insert row
         db.insert(TABLE_USER, null, values);
@@ -124,10 +121,11 @@ public class UserDB extends SQLiteOpenHelper {
             cursor.moveToFirst();
 
             user = new User(cursor.getInt(0),
-                    cursor.getString(1), Grade.valueOf(cursor.getString(2)),
+                    cursor.getString(1),
+                    Grade.valueOf(cursor.getString(2)),
                     cursor.getInt(3), cursor.getFloat(4),
-                    Time.valueOf(cursor.getString(5)), cursor.getInt(6),
-                    cursor.getFloat(7), cursor.getFloat(8));
+                    Time.valueOf(cursor.getString(5)),
+                    cursor.getFloat(6), cursor.getFloat(7));
         }
 
         db.close();

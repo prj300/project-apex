@@ -21,19 +21,19 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 22;
+    private static final int DATABASE_VERSION = 30;
     // database name
-    private static final String DATABASE_NAME = "routedb";
+    private static final String DATABASE_NAME = "routeDb";
     // route table name
-    private static final String TABLE_ROUTE = "routetbl";
+    private static final String TABLE_ROUTE = "routeTbl";
     // route details table column names
-    private static String KEY_USER_ID = "userid";
+    private static String KEY_USER_ID = "userId";
     private static String KEY_GRADE = "grade";
     private static String KEY_TERRAIN = "terrain";
     private static String KEY_DISTANCE = "distance";
     private static String KEY_LATS = "lats";
     private static String KEY_LONGS = "longs";
-    private static String KEY_DATE_CREATED = "datecreated";
+    private static String KEY_DATE_CREATED = "dateCreated";
 
     public RouteDB(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -79,7 +79,7 @@ public class RouteDB extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_USER_ID, route.getUserID());
-        values.put(KEY_GRADE, gson.toJson(route.getGrade()));
+        values.put(KEY_GRADE, String.valueOf(route.getGrade()));
         values.put(KEY_TERRAIN, gson.toJson(route.getTerrain()));
         values.put(KEY_LATS, gson.toJson(route.getLatitudes()));
         values.put(KEY_LONGS, gson.toJson(route.getLongitudes()));

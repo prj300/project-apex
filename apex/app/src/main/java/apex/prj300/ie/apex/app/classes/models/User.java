@@ -16,7 +16,6 @@ public class User {
     public int experience;
     public float totalDistance;
     public Time totalTime;
-    public int totalCalories;
     public float maxSpeed;
     public float avgSpeed;
 
@@ -24,17 +23,16 @@ public class User {
 
     public User(int id, String email, Grade grade,
                 int experience, float totalDistance,
-                Time totalTime, int totalCalories,
+                Time totalTime,
                 float maxSpeed, float avgSpeed) {
-        this.id = id;
-        this.email = email;
-        this.grade = grade;
-        this.experience = experience;
-        this.totalDistance = totalDistance;
-        this.totalTime = totalTime;
-        this.totalCalories = totalCalories;
-        this.maxSpeed = maxSpeed;
-        this.avgSpeed = avgSpeed;
+        this.id = id; // 0
+        this.email = email; // 1
+        this.grade = grade; // 2
+        this.experience = experience; // 3
+        this.totalDistance = totalDistance; // 4
+        this.totalTime = totalTime; // 5
+        this.maxSpeed = maxSpeed; // 6
+        this.avgSpeed = avgSpeed; // 7
     }
 
     public int getId() {
@@ -83,14 +81,6 @@ public class User {
 
     public void setTotalTime(Time totalTime) {
         this.totalTime = totalTime;
-    }
-
-    public int getTotalCalories() {
-        return totalCalories;
-    }
-
-    public void setTotalCalories(int totalCalories) {
-        this.totalCalories = totalCalories;
     }
 
     public float getMaxSpeed() {

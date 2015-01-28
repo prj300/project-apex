@@ -436,16 +436,13 @@ public class RecordRouteActivity extends FragmentActivity implements
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
         trackDistance();
-        trackSpeed();
+        // trackSpeed();
         saveLocation();
         updateUI();
     }
 
-    /**
-     * Formula to track speed
-     */
-
-    private void trackSpeed() {
+    /*
+    private void trackDistance() {
         // formula taken from StackOverflow - http://bit.ly/1zQgFdz
         double R = 6371000;
         if(!mRoute.isEmpty()) {
@@ -459,24 +456,11 @@ public class RecordRouteActivity extends FragmentActivity implements
             double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                     Math.cos(x1) * Math.cos(x2) *
                             Math.sin(dLng/2) * Math.sin(dLng/2);
-            mCurrentSpeed = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-            // avg speed
-            long currentTime = System.currentTimeMillis();
-            mTimeDifference = ((currentTime - mStartTime) * 1000); // TODO: Fix conversions
-            mAvgSpeed = mTotalDistance/mTimeDifference;
-
-            Log.i(TAG, "Speed: " + mCurrentSpeed);
-            Log.i(TAG, "Average Speed: " + mAvgSpeed);
+            mTotalDistance = (float)((2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))));
         }
+        Log.i(TAG, "Distance: " + mTotalDistance);
 
-        // max speed
-        if(mCurrentSpeed > mMaxSpeed) {
-            mMaxSpeed = (float) mCurrentSpeed;
-            Log.i(TAG, "Max Speed: " + mMaxSpeed);
-        }
-
-    }
+    }*/
 
     /**
      * Track total distance covered
@@ -491,7 +475,7 @@ public class RecordRouteActivity extends FragmentActivity implements
             lastLocation.setLatitude(x);
             lastLocation.setLongitude(y);
 
-            if(mCurrentLocation != lastLocation) {
+            if(mCurrentLocation.getLatitude() != lastLocation.getLatitude() || mCurrentLocation.getLongitude() != lastLocation.getLongitude()) {
                 // find distance between two neighbouring points
                 // add to total distance
                 mDistance = lastLocation.distanceTo(mCurrentLocation); // metres

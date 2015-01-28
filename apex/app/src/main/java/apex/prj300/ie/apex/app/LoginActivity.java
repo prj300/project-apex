@@ -41,6 +41,8 @@ public class LoginActivity extends Activity {
     Button mRegister;
     Button mLogin;
 
+    private static final String TAG = "LoginActivity";
+
     // login url
     private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
     //register url
@@ -60,7 +62,6 @@ public class LoginActivity extends Activity {
     private int experience;
     private float totalDistance;
     private Time totalTime;
-    private int totalCalories;
     private float maxSpeed;
     private float avgSpeed;
 
@@ -73,7 +74,6 @@ public class LoginActivity extends Activity {
     private static final String TAG_EXPERIENCE = "experience";
     private static final String TAG_TOTAL_TIME = "totaltime";
     private static final String TAG_TOTAL_DISTANCE = "totaldistance";
-    private static final String TAG_TOTAL_CALORIES = "totalcalories";
     private static final String TAG_MAX_SPEED = "maxspeed";
     private static final String TAG_AVG_SPEED = "avgspeed";
 
@@ -172,7 +172,7 @@ public class LoginActivity extends Activity {
                 // get JSON Object
                 json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
 
-                Log.d("Response: ", json.toString());
+                Log.d(TAG, "Response: " + json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
 
@@ -195,7 +195,7 @@ public class LoginActivity extends Activity {
                     e.printStackTrace();
                 }
             } else if(result == -1) {
-                popToast("Username/password incorrect", "short");
+                Toast.makeText(getApplicationContext(), "A user with this email already exists", Toast.LENGTH_SHORT).show();
             } else {
                 popToast("Login failed", "short");
             }
@@ -209,8 +209,7 @@ public class LoginActivity extends Activity {
         // Instantiate and build a new user
         user = new User(id, email, grade,
                 experience, totalDistance,
-                totalTime, totalCalories,
-                maxSpeed, avgSpeed);
+                totalTime, maxSpeed, avgSpeed);
 
         // instantiate User Database to store User's details locally
         UserDB db = new UserDB(this);
@@ -240,7 +239,6 @@ public class LoginActivity extends Activity {
         experience = json.getInt(TAG_EXPERIENCE);
         totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
         totalTime = Time.valueOf(json.getString(TAG_TOTAL_TIME));
-        totalCalories = json.getInt(TAG_TOTAL_CALORIES);
         maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
         avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
 
