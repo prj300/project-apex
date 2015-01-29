@@ -8,6 +8,7 @@ import java.util.Locale;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -29,15 +30,22 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
@@ -51,7 +59,7 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 
 public class NewRouteActivity extends FragmentActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener, LocationListener{
+        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -68,6 +76,8 @@ public class NewRouteActivity extends FragmentActivity implements
      */
     ViewPager mViewPager;
 
+    public static FragmentManager fragmentManager;
+
     /**
      * JSONParser that will parse data to send to server
      */
@@ -83,13 +93,13 @@ public class NewRouteActivity extends FragmentActivity implements
     protected static final String TAG_DIALOG_NO = "No thanks";
 
     // Desired interval for location updates
-    public static final long UPDATE_INTERVAL__MS = 1000;
+    public static final long UPDATE_INTERVAL_MS = 1000;
     // Fastest rate for location updates
-    public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL__MS / 2;
+    public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
 
     // Google Map
-    private GoogleMap mMap;
+    protected GoogleMap mMap;
     // Entry point to Play Services
     protected GoogleApiClient mGoogleApiClient;
     // Stores parameters for requests to FusedLocationProviderApi
@@ -131,8 +141,8 @@ public class NewRouteActivity extends FragmentActivity implements
      */
     protected Grade routeGrade;
     protected Terrain routeTerrain;
-    protected List<Double> routeLats;
-    protected List<Double> routeLngs;
+    protected List<Double> routeLats = new ArrayList<>();
+    protected List<Double> routeLngs = new ArrayList<>();
     protected float routeDistance;
     protected Date dateCreated;
 
@@ -165,6 +175,7 @@ public class NewRouteActivity extends FragmentActivity implements
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setDisplayShowHomeEnabled(false);
         actionBar.setDisplayShowTitleEnabled(false);
+        fragmentManager = getSupportFragmentManager();
 
         // Locate UI Widgets
         mButtonRecord = (ImageView) findViewById(R.id.btnRecord);
@@ -173,7 +184,6 @@ public class NewRouteActivity extends FragmentActivity implements
         // Set Location Updates status to false
         mRequestingLocationUpdates = false;
         mRecordRoute = false;
-
         mTotalDistance = 0;
 
         // Create the adapter that will return a fragment for each of the three
@@ -223,10 +233,101 @@ public class NewRouteActivity extends FragmentActivity implements
             @Override
             public void onClick(View v) {
                 Log.i(TAG_CONTEXT, "Start Recording...");
-
+                mStartTime = System.currentTimeMillis(); // start timer
+                startUpdatesButtonHandler();
+            }
+        });
+        mButtonStop.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG_CONTEXT, "Stop recording.");
+                mEndTime = System.currentTimeMillis(); // end timer
+                stopUpdatesButtonHandler();
             }
         });
 
+        buildGoogleApiClient();
+
+    }
+
+
+    /**
+     * Build entry point params for Play Services
+     */
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(TAG_CONTEXT, "Building GoogleApiClient...");
+        mGoogleApiClient = new Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    /**
+     * Sets up location request boundaries
+     */
+    private void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+
+        // Sets desired interval for active location updates
+        mLocationRequest.setInterval(UPDATE_INTERVAL_MS);
+
+        // Sets fastest interval for location updates
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_MS);
+
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /**
+     * Handles the Start Updates button and requests start of location updates. Does nothing if
+     * updates have already been requested.
+     */
+    private void startUpdatesButtonHandler() {
+        if(!mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = true;
+            setButtonsEnabledState();
+            startLocationUpdates();
+        }
+    }
+
+    /**
+     * Handles the Stop Updates button, and requests removal of location updates. Does nothing if
+     * updates were not previously requested.
+     */
+    public void stopUpdatesButtonHandler() {
+        if (mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = false;
+            setButtonsEnabledState();
+            stopLocationUpdates();
+        }
+    }
+
+    private void setButtonsEnabledState() {
+        if (mRequestingLocationUpdates) {
+            mButtonRecord.setEnabled(false);
+            mButtonStop.setEnabled(true);
+        } else {
+            mButtonRecord.setEnabled(true);
+            mButtonStop.setEnabled(false);
+        }
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi
+     */
+    private void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.
+                removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    /**
+     * Requests location updates from FusedLocationApi
+     */
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this
+        );
     }
 
 
@@ -253,23 +354,143 @@ public class NewRouteActivity extends FragmentActivity implements
     }
 
     @Override
-    public void onConnected(Bundle bundle) {
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop location updates but don't disconnect the GoogleApiClient
+        // stopLocationUpdates();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        /*
+        if(mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+        */
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG_CONTEXT, "Connected to GoogleApiClient");
+
+        if(mLocation == null) {
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+
+        // If user presses Start button before GoogleApiClient connects
+        // set mRequestingLocationUpdates to true
+        if(mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        // Connection to Play Services lost
+        // Try to re-connect
+        Log.i(TAG_CONTEXT, "Connection Suspended");
+        mGoogleApiClient.connect();
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
+        mLocation = location;
+        mLatitude = location.getLatitude();
+        mLongitude = location.getLongitude();
+        trackDistance();
+        // trackSpeed();
+        saveLocation();
+        updateUI();
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        stopLocationUpdates();
+        Log.i(TAG_CONTEXT, "Connection failed: ConnectionResult.getErrorCode() = "
+                + connectionResult.getErrorCode());
+    }
 
+
+    /**
+     * Track total distance covered
+     */
+    private void trackDistance() {
+        if(!mLatLngs.isEmpty()) {
+            Location lastLocation = new Location("LastLocation");
+            double x = mLatLngs.get(mLatLngs.size()-1).latitude; // previous latitude point in array
+            double y = mLatLngs.get(mLatLngs.size()-1).longitude; // previous longitude point in array
+
+            // set previous location parameters
+            lastLocation.setLatitude(x);
+            lastLocation.setLongitude(y);
+
+            if(mLocation != lastLocation) {
+                // find distance between two neighbouring points
+                // add to total distance
+                mDistance = lastLocation.distanceTo(mLocation); // metres
+                mTotalDistance += mDistance; // total metres
+                Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
+            }
+
+        }
+    }
+
+    /**
+     * Save location to array
+     */
+    private void saveLocation() {
+        LatLng latLong = new LatLng(mLatitude, mLongitude);
+        // save points to array
+        Log.i(TAG_CONTEXT, "Saving points: " + latLong);
+        mLatLngs.add(new LatLng(mLatitude, mLongitude));
+        routeLats.add(mLatitude);
+        routeLngs.add(mLongitude);
+    }
+
+    /**
+     * Update UI in real-time
+     * Follow User as they move
+     * Show distance covered
+     */
+    private void updateUI() {
+        LatLng latLng = new LatLng(mLatitude, mLongitude);
+        // plot points on UI
+        line = mMap.addPolyline(new PolylineOptions()
+                .add(latLng)
+                .width(6f)
+                .color(Color.BLUE)
+                .geodesic(true));
+
+        // move camera to updated position on map
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16);
+        mMap.animateCamera(cameraUpdate);
+
+        /*
+        if(mTotalDistance < 1000) {
+            // display in metres
+            mTextDistance.setText(String.format("%.1f (m)", mTotalDistance));
+        }
+        else {
+            // display in kilometres
+            mTextDistance.setText(String.format("%.2f (km)", mTotalDistance/1000));
+        }
+        */
     }
 
 
@@ -288,7 +509,10 @@ public class NewRouteActivity extends FragmentActivity implements
             // Return a PlaceholderFragment (defined as a static inner class below).
             switch (position) {
                 case 0:
-                    return new MyMapFragment();
+                    Fragment fragment = new MyMapFragment();
+                    Bundle args = new Bundle();
+                    fragment.setArguments(args);
+                    return fragment;
                 case 1:
                     return new StatisticsFragment();
             }
@@ -305,12 +529,11 @@ public class NewRouteActivity extends FragmentActivity implements
         public CharSequence getPageTitle(int position) {
             Locale l = Locale.getDefault();
             switch (position) {
-                case 0:
+                default:
                     return getString(R.string.title_map).toUpperCase(l);
                 case 1:
                     return getString(R.string.title_statistics).toUpperCase(l);
             }
-            return null;
         }
     }
 
@@ -318,6 +541,14 @@ public class NewRouteActivity extends FragmentActivity implements
      * A placeholder fragment containing map view.
      */
     public static class MyMapFragment extends Fragment {
+
+        private GoogleMap mMap;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            initMap();
+        }
 
         @Override
         public View onCreateView(LayoutInflater inflater,
@@ -327,9 +558,26 @@ public class NewRouteActivity extends FragmentActivity implements
             View rootView = inflater.inflate(
                     R.layout.fragment_map, container, false);
             // Bundle args = getArguments();
-            /*((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                    Integer.toString(args.getInt(ARG_OBJECT)));*/
+
             return rootView;
+        }
+
+        private GoogleMap initMap() {
+            if(mMap == null && getActivity() != null
+                    && getActivity().getSupportFragmentManager() != null) {
+                SupportMapFragment smf = (SupportMapFragment)getActivity().
+                        getSupportFragmentManager().findFragmentById(R.id.map);
+                if(smf != null) {
+                    mMap = smf.getMap();
+                    mMap.setMyLocationEnabled(true);
+                }
+            }
+            return mMap;
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
         }
     }
 
