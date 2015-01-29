@@ -7,8 +7,9 @@
 
     <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" android:id="@+id/pager"
-        android:layout_width="match_parent" android:layout_height="match_parent"
-        tools:context="apex.prj300.ie.apex.app.NewRouteActivity" />
+        android:layout_width="match_parent" android:layout_height="450dip"
+        tools:context="apex.prj300.ie.apex.app.NewRouteActivity"
+        android:layout_above="@+id/buttons" />
 
     <LinearLayout
         android:background="@color/apex_black"
@@ -23,18 +24,22 @@
     <ImageView
         android:background="@null"
         android:id="@+id/btnRecord"
-        android:layout_width="100dip"
-        android:layout_height="100dip"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_margin="0dip"
         android:src="@drawable/button_record" />
 
+    <TextView
+        android:layout_width="30dip"
+        android:layout_height="match_parent" />
+
     <ImageView
         android:background="@null"
-        android:id="@+id/btnPause"
+        android:id="@+id/btnStop"
         android:layout_width="100dip"
         android:layout_height="100dip"
         android:layout_margin="4dip"
-        android:src="@drawable/button_pause" />
+        android:src="@drawable/button_stop" />
 
     </LinearLayout>
 

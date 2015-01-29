@@ -14,12 +14,11 @@ public class Results {
     public float maxSpeed;
     public float avgSpeed;
     public Date time;
-    public int caloriesLost;
     public Date dateCreated;
 
     public Results() { }
 
-    public Results(int userId, int routeId, int experience, float distance, float maxSpeed, float avgSpeed, Date time, int caloriesLost, Date dateCreated) {
+    public Results(int userId, int routeId, int experience, float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
         this.userId = userId;
         this.routeId = routeId;
         this.experience = experience;
@@ -27,7 +26,6 @@ public class Results {
         this.maxSpeed = maxSpeed;
         this.avgSpeed = avgSpeed;
         this.time = time;
-        this.caloriesLost = caloriesLost;
         this.dateCreated = dateCreated;
     }
 
@@ -85,14 +83,6 @@ public class Results {
 
     public void setTime(Date time) {
         this.time = time;
-    }
-
-    public int getCaloriesLost() {
-        return caloriesLost;
-    }
-
-    public void setCaloriesLost(int caloriesLost) {
-        this.caloriesLost = caloriesLost;
     }
 
     public Date getDateCreated() {

@@ -20,6 +20,6 @@
     <string name="title_activity_new_route">NewRouteActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_map">Map</string>
-    <string name="title_statistics">Statistics</string>
+    <string name="title_statistics">Stats</string>
 
 </resources>
