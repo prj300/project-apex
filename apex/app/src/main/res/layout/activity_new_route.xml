@@ -5,11 +5,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    <!--
     <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" android:id="@+id/pager"
         android:layout_width="match_parent" android:layout_height="450dip"
         tools:context="apex.prj300.ie.apex.app.NewRouteActivity"
-        android:layout_above="@+id/buttons" />
+        android:layout_above="@+id/buttons" />-->
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:layout_above="@+id/buttons"
+        android:id="@+id/map"
+        tools:context="apex.prj300.ie.apex.app.RecordActivity"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_alignParentTop="true" />
 
     <LinearLayout
         android:background="@color/apex_black"

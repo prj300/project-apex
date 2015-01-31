@@ -8,6 +8,8 @@ import java.util.Locale;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
@@ -44,13 +46,16 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
+import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
+import apex.prj300.ie.apex.app.classes.models.Route;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 import static android.view.View.*;
@@ -60,23 +65,6 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 public class NewRouteActivity extends FragmentActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
-
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    SectionsPagerAdapter mSectionsPagerAdapter;
-
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
-
-    public static FragmentManager fragmentManager;
 
     /**
      * JSONParser that will parse data to send to server
@@ -173,9 +161,9 @@ public class NewRouteActivity extends FragmentActivity implements
         setContentView(R.layout.activity_new_route);
         final ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        actionBar.setDisplayShowHomeEnabled(false);
-        actionBar.setDisplayShowTitleEnabled(false);
-        fragmentManager = getSupportFragmentManager();
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        setUpMapIfNeeded();
 
         // Locate UI Widgets
         mButtonRecord = (ImageView) findViewById(R.id.btnRecord);
@@ -185,48 +173,6 @@ public class NewRouteActivity extends FragmentActivity implements
         mRequestingLocationUpdates = false;
         mRecordRoute = false;
         mTotalDistance = 0;
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        // Create a tab listener that is called when the user changes tabs.
-        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-
-            @Override
-            public void onTabSelected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-                mViewPager.setCurrentItem(tab.getPosition());
-            }
-
-            @Override
-            public void onTabUnselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-
-            }
-
-            @Override
-            public void onTabReselected(ActionBar.Tab tab, android.app.FragmentTransaction ft) {
-
-            }
-        };
-
-        mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                getActionBar().setSelectedNavigationItem(position);
-            }
-        });
-
-        // Add 2 tabs
-        for(int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-            actionBar.addTab(actionBar
-                .newTab()
-                .setText(mSectionsPagerAdapter.getPageTitle(i))
-                .setTabListener(tabListener));
-        }
 
         // Create Listeners for Record/Stop buttons
         mButtonRecord.setOnClickListener(new OnClickListener() {
@@ -243,11 +189,94 @@ public class NewRouteActivity extends FragmentActivity implements
                 Log.i(TAG_CONTEXT, "Stop recording.");
                 mEndTime = System.currentTimeMillis(); // end timer
                 stopUpdatesButtonHandler();
+                saveRouteDialog();
             }
         });
-
+        
         buildGoogleApiClient();
 
+    }
+
+    /**
+     * AlertDialog to save or discard new route
+     */
+    private void saveRouteDialog() {
+        // Instantiate an AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        // Set main message
+        builder.setMessage(R.string.dialog_save_route)
+                // Set up buttons, and what action to take
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        chooseTerrainDialog();
+                        Log.d(TAG_CONTEXT, "Save route selected");
+                    }
+                })
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+        // Crate builder and display
+        builder.create();
+        builder.show();
+    }
+
+    private void chooseTerrainDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        builder.setTitle(R.string.pick_terrain)
+                .setItems(R.array.terrains_array, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case 0:
+                                routeTerrain = Terrain.Road;
+                            case 1:
+                                routeTerrain = Terrain.Gravel;
+                            case 2:
+                                routeTerrain = Terrain.Dirt;
+                        }
+                        Log.d(TAG_CONTEXT, "Terrain selected " + routeTerrain);
+                        saveNewRoute();
+
+                    }
+                });
+        builder.create();
+        builder.show();
+    }
+
+    /**
+     * Saving route to SQLite Database
+     */
+    private void saveNewRoute() {
+        RouteDB db = new RouteDB(this);
+        Route newRoute = new Route(mId, Grade.A, routeTerrain, routeLats, routeLngs, routeDistance, dateCreated);
+        db.addRoute(newRoute);
+        Log.d(TAG_CONTEXT, "Route Saved Locally");
+        saveResults();
+        // TODO: Set up saving to remote database
+    }
+
+    private void saveResults() {
+        
+    }
+
+    private void setUpMapIfNeeded() {
+        if(mMap != null) {
+            return;
+        }
+        mMap = ((SupportMapFragment)getSupportFragmentManager()
+                .findFragmentById(R.id.map))
+                .getMap();
+        if(mMap != null) {
+            setUpMap();
+        }
+    }
+
+    private void setUpMap() {
+        mMap.setMyLocationEnabled(true);
     }
 
 
@@ -284,7 +313,7 @@ public class NewRouteActivity extends FragmentActivity implements
      * updates have already been requested.
      */
     private void startUpdatesButtonHandler() {
-        if(!mRequestingLocationUpdates) {
+        if (!mRequestingLocationUpdates) {
             mRequestingLocationUpdates = true;
             setButtonsEnabledState();
             startLocationUpdates();
@@ -363,7 +392,7 @@ public class NewRouteActivity extends FragmentActivity implements
     protected void onResume() {
         super.onResume();
 
-        if(mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
             startLocationUpdates();
         }
     }
@@ -389,13 +418,13 @@ public class NewRouteActivity extends FragmentActivity implements
     public void onConnected(Bundle bundle) {
         Log.i(TAG_CONTEXT, "Connected to GoogleApiClient");
 
-        if(mLocation == null) {
+        if (mLocation == null) {
             mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
         // If user presses Start button before GoogleApiClient connects
         // set mRequestingLocationUpdates to true
-        if(mRequestingLocationUpdates) {
+        if (mRequestingLocationUpdates) {
             startLocationUpdates();
         }
     }
@@ -431,16 +460,16 @@ public class NewRouteActivity extends FragmentActivity implements
      * Track total distance covered
      */
     private void trackDistance() {
-        if(!mLatLngs.isEmpty()) {
+        if (!mLatLngs.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
-            double x = mLatLngs.get(mLatLngs.size()-1).latitude; // previous latitude point in array
-            double y = mLatLngs.get(mLatLngs.size()-1).longitude; // previous longitude point in array
+            double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
+            double y = mLatLngs.get(mLatLngs.size() - 1).longitude; // previous longitude point in array
 
             // set previous location parameters
             lastLocation.setLatitude(x);
             lastLocation.setLongitude(y);
 
-            if(mLocation != lastLocation) {
+            if (mLocation != lastLocation) {
                 // find distance between two neighbouring points
                 // add to total distance
                 mDistance = lastLocation.distanceTo(mLocation); // metres
@@ -472,7 +501,7 @@ public class NewRouteActivity extends FragmentActivity implements
         LatLng latLng = new LatLng(mLatitude, mLongitude);
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
-                .add(latLng)
+                .addAll(mLatLngs)
                 .width(6f)
                 .color(Color.BLUE)
                 .geodesic(true));
@@ -489,112 +518,7 @@ public class NewRouteActivity extends FragmentActivity implements
         else {
             // display in kilometres
             mTextDistance.setText(String.format("%.2f (km)", mTotalDistance/1000));
-        }
-        */
-    }
+        }*/
 
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            switch (position) {
-                case 0:
-                    Fragment fragment = new MyMapFragment();
-                    Bundle args = new Bundle();
-                    fragment.setArguments(args);
-                    return fragment;
-                case 1:
-                    return new StatisticsFragment();
-            }
-            return null;
-        }
-
-        @Override
-        public int getCount() {
-            // Show 2 total pages.
-            return 2;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                default:
-                    return getString(R.string.title_map).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_statistics).toUpperCase(l);
-            }
-        }
-    }
-
-    /**
-     * A placeholder fragment containing map view.
-     */
-    public static class MyMapFragment extends Fragment {
-
-        private GoogleMap mMap;
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            initMap();
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater,
-                                 ViewGroup container, Bundle savedInstanceState) {
-            // The last two arguments ensure LayoutParams are inflated
-            // properly.
-            View rootView = inflater.inflate(
-                    R.layout.fragment_map, container, false);
-            // Bundle args = getArguments();
-
-            return rootView;
-        }
-
-        private GoogleMap initMap() {
-            if(mMap == null && getActivity() != null
-                    && getActivity().getSupportFragmentManager() != null) {
-                SupportMapFragment smf = (SupportMapFragment)getActivity().
-                        getSupportFragmentManager().findFragmentById(R.id.map);
-                if(smf != null) {
-                    mMap = smf.getMap();
-                    mMap.setMyLocationEnabled(true);
-                }
-            }
-            return mMap;
-        }
-
-        @Override
-        public void onDestroyView() {
-            super.onDestroyView();
-        }
-    }
-
-    public static class StatisticsFragment extends Fragment {
-        // public static final String ARG_OBJECT = "object";
-
-        @Override
-        public View onCreateView(LayoutInflater inflater,
-                                 ViewGroup container, Bundle savedInstanceState) {
-            // The last two arguments ensure LayoutParams are inflated
-            // properly.
-            View rootView = inflater.inflate(
-                    R.layout.fragment_statistics, container, false);
-            // Bundle args = getArguments();
-            /*((TextView) rootView.findViewById(android.R.id.text1)).setText(
-                    Integer.toString(args.getInt(ARG_OBJECT)));*/
-            return rootView;
-        }
     }
 }

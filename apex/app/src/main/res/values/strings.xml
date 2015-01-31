@@ -21,5 +21,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_map">Map</string>
     <string name="title_statistics">Stats</string>
-
+    <string name="dialog_save_route">Do you wish to save this route?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="pick_terrain">Pick a terrain</string>
 </resources>
