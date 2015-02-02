@@ -684,8 +684,7 @@ public class NewRouteActivity extends FragmentActivity implements
                 params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
                 params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
                 params.add(new BasicNameValuePair("longitudes", gson.toJson(routeLngs)));
-                params.add(new BasicNameValuePair("distance", gson.toJson(routeDistance)));
-                params.add(new BasicNameValuePair("date_created", gson.toJson(dateCreated)));
+                params.add(new BasicNameValuePair("distance", String.valueOf(mTotalDistance)));
                 // Results parameters
                 params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
                 params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
@@ -695,6 +694,7 @@ public class NewRouteActivity extends FragmentActivity implements
 
                 indicator = json.getInt(TAG_SUCCESS);
                 message = json.getString(TAG_MESSAGE);
+
             } catch (JSONException e) {
                 Log.d(TAG_CONTEXT, "JSONException " + e.getMessage());
                 Toast.makeText(getApplicationContext(),
@@ -709,9 +709,10 @@ public class NewRouteActivity extends FragmentActivity implements
             mProgressDialog.dismiss();
             // check indicator
             if(result == 1) {
-                Log.d(TAG_CONTEXT, "Insert successful!");
+                Log.i(TAG_CONTEXT, "Insert successful!");
                 Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
             } else {
+                Log.i(TAG_CONTEXT, "Insert successful!");
                 Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
             }
         }
