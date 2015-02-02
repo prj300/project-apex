@@ -9,7 +9,6 @@ public class Results {
 
     public int userId;
     public int routeId;
-    public int experience;
     public float distance;
     public float maxSpeed;
     public float avgSpeed;
@@ -18,10 +17,17 @@ public class Results {
 
     public Results() { }
 
-    public Results(int userId, int routeId, int experience, float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
+    public Results(int userId, int routeId, float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
         this.userId = userId;
         this.routeId = routeId;
-        this.experience = experience;
+        this.distance = distance;
+        this.maxSpeed = maxSpeed;
+        this.avgSpeed = avgSpeed;
+        this.time = time;
+        this.dateCreated = dateCreated;
+    }
+
+    public Results(float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
         this.distance = distance;
         this.maxSpeed = maxSpeed;
         this.avgSpeed = avgSpeed;
@@ -43,14 +49,6 @@ public class Results {
 
     public void setRouteId(int routeId) {
         this.routeId = routeId;
-    }
-
-    public int getExperience() {
-        return experience;
-    }
-
-    public void setExperience(int experience) {
-        this.experience = experience;
     }
 
     public float getDistance() {

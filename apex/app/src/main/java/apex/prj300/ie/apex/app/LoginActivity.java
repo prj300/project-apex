@@ -2,7 +2,10 @@ package apex.prj300.ie.apex.app;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,6 +38,7 @@ public class LoginActivity extends Activity {
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
     private JSONObject json;
+    boolean isConnected = false; // handles network state
 
     EditText mEmail;
     EditText mPassword;
@@ -42,11 +46,6 @@ public class LoginActivity extends Activity {
     Button mLogin;
 
     private static final String TAG = "LoginActivity";
-
-    // login url
-    private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
-    //register url
-    private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
 
     // indicates success of JSON response
     private int indicator = 0;
@@ -57,13 +56,13 @@ public class LoginActivity extends Activity {
     private User user;
     private int id;
     private String password;
-    private String email;
-    private Grade grade;
-    private int experience;
-    private float totalDistance;
-    private Time totalTime;
-    private float maxSpeed;
-    private float avgSpeed;
+    private static String email;
+    private static Grade grade;
+    private static int experience;
+    private static float totalDistance;
+    private static Time totalTime;
+    private static float maxSpeed;
+    private static float avgSpeed;
 
     /**
      * JSON Node Responses
@@ -97,10 +96,14 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
                 if(mEmail.getText().toString().equals("")
                         || mPassword.getText().toString().equals("")) {
-                    Log.d("Input: ", TAG_MISSING_FIELDS);
-                    popToast(TAG_MISSING_FIELDS, "short");
+                        Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
-                    new LoginUser().execute();
+                    isNetworkAvailable();
+                    if(!isConnected) {
+                         Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
+                    } else {
+                        new LoginUser().execute();
+                    }
                 }
             }
         });
@@ -110,15 +113,31 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
                 if(mEmail.getText().toString().equals("")
                         || mPassword.getText().toString().equals("")) {
-                    Log.d("Input: ", TAG_MISSING_FIELDS);
-                    popToast(TAG_MISSING_FIELDS, "short");
+                    Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
-                    new RegisterUser().execute();
+                    isNetworkAvailable();
+                    if(!isConnected) {
+                        Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
+                    } else {
+                        new RegisterUser().execute();
+                    }
                 }
             }
         });
     }
 
+    /**
+     * Check to see if there is an internet connection
+     * If none return false
+     */
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        isConnected = networkInfo != null
+                && networkInfo.isConnected()
+                && networkInfo.isAvailable();
+        return isConnected;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -170,7 +189,7 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(getString(R.string.login_url), HttpMethod.POST, params);
 
                 Log.d(TAG, "Response: " + json.toString());
 
@@ -184,13 +203,13 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Success:", result.toString());
+            Log.d(TAG, "Success: " + result);
             // dismiss progress dialog
             mProgressDialog.dismiss();
             if(result == 1) {
                 try {
                     GetJSONNodes(json);
-                    popToast("Logged in as ", email);
+                    Toast.makeText(getApplicationContext(), "Logged in as " + email, Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -274,7 +293,7 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(getString(R.string.register_url), HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 

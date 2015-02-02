@@ -1,17 +1,29 @@
 package apex.prj300.ie.apex.app;
 
+import java.sql.Time;
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v7.app.ActionBarActivity;
@@ -51,10 +63,19 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import apex.prj300.ie.apex.app.classes.db.ResultsDB;
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
+import apex.prj300.ie.apex.app.classes.models.Results;
 import apex.prj300.ie.apex.app.classes.models.Route;
 import apex.prj300.ie.apex.app.classes.models.User;
 
@@ -66,19 +87,24 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 public class NewRouteActivity extends FragmentActivity implements
         ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
+    // progress dialog for AsyncTask
+    private ProgressDialog mProgressDialog;
     /**
      * JSONParser that will parse data to send to server
      */
     JSONParser jsonParser = new JSONParser();
     Gson gson = new Gson();
+    // boolean to handle network state
+    boolean isConnected = false;
 
     /**
      * Static Variables
      */
     protected static final String TAG_CONTEXT = "NewRouteActivity";
-    protected static final String TAG_DIALOG_SAVE_ROUTE = "Do you wish to save this route?";
-    protected static final String TAG_DIALOG_YES = "OK";
-    protected static final String TAG_DIALOG_NO = "No thanks";
+    protected static final String TAG_SUCCESS = "success";
+    private static final String TAG_MESSAGE = "message";
+    private static int indicator = 0;
+    private static String message;
 
     // Desired interval for location updates
     public static final long UPDATE_INTERVAL_MS = 1000;
@@ -94,55 +120,53 @@ public class NewRouteActivity extends FragmentActivity implements
     protected LocationRequest mLocationRequest;
     // Represents a Geographical location
     protected Location mLocation;
-    protected double mLatitude; // current latitude
-    protected double mLongitude; // current longitude
+    protected static double mLatitude; // current latitude
+    protected static double mLongitude; // current longitude
     // Tracks status of location updates request
     protected Boolean mRequestingLocationUpdates;
     // Tracks whether route should be recorded or not
     protected Boolean mRecordRoute;
 
     // Stores user's geographical points
-    protected List<LatLng> mLatLngs = new ArrayList<>();
+    protected static List<LatLng> mLatLngs = new ArrayList<>();
     // Displays user's geographical points
     protected Polyline line;
 
     // Tracks distance covered
-    protected float mDistance;
-    protected float mTotalDistance;
+    protected static float mDistance;
+    protected static float mTotalDistance;
 
     // Tracks time elapsed
     protected Long mStartTime; // (milliseconds)
     protected Long mEndTime;
     protected Long mTimeDifference;
 
-    // Calendar to track date created
-    protected static Calendar mCalendar = Calendar.getInstance();
-
     /**
      * User Model properties (as needed)
      */
-    protected User user = new User();
-    protected int mId;
+    protected static User mUser = new User();
+    protected static int mId;
 
     /**
      * Route Model Properties
      */
-    protected Grade routeGrade;
-    protected Terrain routeTerrain;
+    protected static Grade routeGrade;
+    protected static Terrain routeTerrain;
     protected List<Double> routeLats = new ArrayList<>();
     protected List<Double> routeLngs = new ArrayList<>();
-    protected float routeDistance;
+    protected static float routeDistance;
     protected Date dateCreated;
 
     /**
      * Results Model Properties
      */
     protected int routeId;
-    protected int mExperience;
     protected float mMaxSpeed;
     // protected float routeDistance;
-    protected float avgSpeed;
-    protected Date mTime;
+    protected float mAvgSpeed;
+    protected List<Float> mSpeeds;
+    protected Time mTime;
+    protected List<Long> mTimes = new ArrayList<>();
     // protected Date dateCreated;
 
     /**
@@ -159,11 +183,12 @@ public class NewRouteActivity extends FragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_route);
+        setUpMapIfNeeded();
         final ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
-        setUpMapIfNeeded();
+        getCurrentUser();
 
         // Locate UI Widgets
         mButtonRecord = (ImageView) findViewById(R.id.btnRecord);
@@ -178,7 +203,7 @@ public class NewRouteActivity extends FragmentActivity implements
         mButtonRecord.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG_CONTEXT, "Start Recording...");
+                Log.i(TAG_CONTEXT, "Start Recording.");
                 mStartTime = System.currentTimeMillis(); // start timer
                 startUpdatesButtonHandler();
             }
@@ -187,20 +212,51 @@ public class NewRouteActivity extends FragmentActivity implements
             @Override
             public void onClick(View v) {
                 Log.i(TAG_CONTEXT, "Stop recording.");
-                mEndTime = System.currentTimeMillis(); // end timer
+                trackTime();
                 stopUpdatesButtonHandler();
                 saveRouteDialog();
             }
+
         });
-        
+
         buildGoogleApiClient();
+
+    }
+
+    /**
+     * User currently logged in
+     */
+    private void getCurrentUser() {
+        UserDB db = new UserDB(this);
+
+        mUser = db.getUser();
+        mId = mUser.getId();
+        db.close();
+    }
+
+    /**
+     * Getting total journey time
+     */
+    public void trackTime() {
+        mEndTime = System.currentTimeMillis();
+
+        mTimeDifference = mEndTime - mStartTime;
+
+        // mTimes.add(mTimeDifference); // logging each time instance
+
+        String time = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(mTimeDifference),
+                TimeUnit.MILLISECONDS.toMinutes(mTimeDifference) % TimeUnit.HOURS.toMinutes(1),
+                TimeUnit.MILLISECONDS.toSeconds(mTimeDifference) % TimeUnit.MINUTES.toSeconds(1));
+
+        mTime = Time.valueOf(time);
+        Log.d(TAG_CONTEXT, "Time: " + mTime);
 
     }
 
     /**
      * AlertDialog to save or discard new route
      */
-    private void saveRouteDialog() {
+    public void saveRouteDialog() {
         // Instantiate an AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
         // Set main message
@@ -209,8 +265,8 @@ public class NewRouteActivity extends FragmentActivity implements
                 .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        chooseTerrainDialog();
-                        Log.d(TAG_CONTEXT, "Save route selected");
+                        Log.d(TAG_CONTEXT, "Saving new route");
+                        chooseTerrainDialog(); // choose a terrain
                     }
                 })
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -224,7 +280,21 @@ public class NewRouteActivity extends FragmentActivity implements
         builder.show();
     }
 
-    private void chooseTerrainDialog() {
+    /**
+     * Check to see if there is an internet connection
+     * If none return false
+     */
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        isConnected = networkInfo != null
+                && networkInfo.isConnected()
+                && networkInfo.isAvailable();
+        return isConnected;
+    }
+
+
+    public void chooseTerrainDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
         builder.setTitle(R.string.pick_terrain)
                 .setItems(R.array.terrains_array, new DialogInterface.OnClickListener() {
@@ -238,9 +308,9 @@ public class NewRouteActivity extends FragmentActivity implements
                             case 2:
                                 routeTerrain = Terrain.Dirt;
                         }
-                        Log.d(TAG_CONTEXT, "Terrain selected " + routeTerrain);
+                        Log.d(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
+                        calculateGrade();
                         saveNewRoute();
-
                     }
                 });
         builder.create();
@@ -248,19 +318,64 @@ public class NewRouteActivity extends FragmentActivity implements
     }
 
     /**
-     * Saving route to SQLite Database
+     * Calculate route's grade
      */
-    private void saveNewRoute() {
-        RouteDB db = new RouteDB(this);
-        Route newRoute = new Route(mId, Grade.A, routeTerrain, routeLats, routeLngs, routeDistance, dateCreated);
-        db.addRoute(newRoute);
-        Log.d(TAG_CONTEXT, "Route Saved Locally");
-        saveResults();
-        // TODO: Set up saving to remote database
+    private void calculateGrade() {
+
     }
 
-    private void saveResults() {
-        
+    /**
+     * Saving route to SQLite Database
+     */
+    public void saveNewRoute() {
+        RouteDB db = new RouteDB(this);
+
+        // getting today's date
+        java.util.Date utilDate = new java.util.Date();
+        // converting to sql.date
+        dateCreated = new java.sql.Date(utilDate.getTime());
+
+        routeGrade = Grade.A;
+
+        // build route properties from results
+        Route newRoute = new Route(mId, routeGrade, routeTerrain, routeLats, routeLngs, mTotalDistance, dateCreated);
+        db.addRoute(newRoute);
+        db.close();
+
+        Log.d(TAG_CONTEXT, "Route Saved Locally");
+        Log.i(TAG_CONTEXT, "Time: " + mTime);
+        Log.i(TAG_CONTEXT, "User: " + mId
+                + ", Route Grade: " + Grade.A
+                + ", Route Terrain: " + routeTerrain
+                + ", Distance: " + mTotalDistance
+                + ", Date Created: " + dateCreated);
+
+        saveResults();
+    }
+
+    /**
+     * Saving results
+     */
+    public void saveResults() {
+        ResultsDB db = new ResultsDB(this);
+        Results newResult = new Results(mTotalDistance, mMaxSpeed, mAvgSpeed, mTime, dateCreated);
+        db.addResult(newResult);
+        db.close();
+        Log.i(TAG_CONTEXT, "Total Distance: " + mTotalDistance
+                + ", Max Speed: " + mMaxSpeed
+                + ", Average Speed: " + mAvgSpeed
+                + ", Time: " + mTime
+                + ", Date Created: " + dateCreated);
+
+        isNetworkAvailable(); // check for connection
+        Log.d(TAG_CONTEXT, "Network availability = " + isConnected);
+        if (isConnected) {
+            new SaveNewRoute().execute();
+        } else {
+            Log.d(TAG_CONTEXT, "No network connection!");
+            Toast.makeText(getApplicationContext(),
+                    "No network connection!", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setUpMapIfNeeded() {
@@ -443,14 +558,39 @@ public class NewRouteActivity extends FragmentActivity implements
         mLatitude = location.getLatitude();
         mLongitude = location.getLongitude();
         trackDistance();
-        // trackSpeed();
+        trackTime();
+        trackSpeed();
         saveLocation();
         updateUI();
+    }
+
+    /**
+     * Tracking speed
+     * Average, Max and Instantaneous
+     */
+    private void trackSpeed() {
+        // float mCurrentSpeed = Float.NaN;
+        /*
+        if(!mTimes.isEmpty()) {
+            long lastTime = mTimes.get(mTimes.size() -1);
+
+            (Math.pow(Math.sqrt(mLatitude - lastLat), 2) + Math.pow(Math.sqrt(mLongitude - lastLong), 2));
+        }*/
+
+        // Avg speed formula
+        float avgSpeed = (mTotalDistance * 360000 / mTimeDifference);
+
+        // Format to two decimal places
+        mAvgSpeed = Float.valueOf(String.format("%.2f", avgSpeed));
+
+        Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         stopLocationUpdates();
+        Toast.makeText(getApplicationContext(),
+                "Lost connection to network!", Toast.LENGTH_SHORT).show();
         Log.i(TAG_CONTEXT, "Connection failed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
     }
@@ -459,7 +599,7 @@ public class NewRouteActivity extends FragmentActivity implements
     /**
      * Track total distance covered
      */
-    private void trackDistance() {
+    public void trackDistance() {
         if (!mLatLngs.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
             double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
@@ -476,14 +616,13 @@ public class NewRouteActivity extends FragmentActivity implements
                 mTotalDistance += mDistance; // total metres
                 Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
             }
-
         }
     }
 
     /**
      * Save location to array
      */
-    private void saveLocation() {
+    public void saveLocation() {
         LatLng latLong = new LatLng(mLatitude, mLongitude);
         // save points to array
         Log.i(TAG_CONTEXT, "Saving points: " + latLong);
@@ -497,7 +636,7 @@ public class NewRouteActivity extends FragmentActivity implements
      * Follow User as they move
      * Show distance covered
      */
-    private void updateUI() {
+    public void updateUI() {
         LatLng latLng = new LatLng(mLatitude, mLongitude);
         // plot points on UI
         line = mMap.addPolyline(new PolylineOptions()
@@ -520,5 +659,61 @@ public class NewRouteActivity extends FragmentActivity implements
             mTextDistance.setText(String.format("%.2f (km)", mTotalDistance/1000));
         }*/
 
+    }
+
+    private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
+            mProgressDialog.setMessage("Saving new route...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(true);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Integer doInBackground(Route... args) {
+
+            try {
+                List<NameValuePair> params = new ArrayList<>();
+                // Route parameters
+                params.add(new BasicNameValuePair("user_id", String.valueOf(mId)));
+                params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
+                params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
+                params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
+                params.add(new BasicNameValuePair("longitudes", gson.toJson(routeLngs)));
+                params.add(new BasicNameValuePair("distance", gson.toJson(routeDistance)));
+                params.add(new BasicNameValuePair("date_created", gson.toJson(dateCreated)));
+                // Results parameters
+                params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
+                params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
+                params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
+
+                JSONObject json = jsonParser.makeHttpRequest(getString(R.string.create_route_url), HttpMethod.POST, params);
+
+                indicator = json.getInt(TAG_SUCCESS);
+                message = json.getString(TAG_MESSAGE);
+            } catch (JSONException e) {
+                Log.d(TAG_CONTEXT, "JSONException " + e.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        "Something went wrong!", Toast.LENGTH_LONG).show();
+            }
+            return indicator;
+        }
+
+        protected void onPostExecute(Integer result) {
+            Log.d(TAG_CONTEXT, "Success: " + indicator + ", Message: " + message);
+            // dismiss Progress Dialog
+            mProgressDialog.dismiss();
+            // check indicator
+            if(result == 1) {
+                Log.d(TAG_CONTEXT, "Insert successful!");
+                Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

@@ -52,7 +52,7 @@ public class RouteDB extends SQLiteOpenHelper {
                 + KEY_LATS + " TEXT,"
                 + KEY_LONGS + " TEXT,"
                 + KEY_DISTANCE + " FLOAT,"
-                + KEY_DATE_CREATED + " DATE" + ")";
+                + KEY_DATE_CREATED + " TEXT" + ")";
         // execute sql
         db.execSQL(CREATE_ROUTE_TABLE);
 
@@ -75,16 +75,16 @@ public class RouteDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         Gson gson = new Gson();
-        // Convert route array to parseable json string
+        // Convert route array to parsable json string
 
         ContentValues values = new ContentValues();
         values.put(KEY_USER_ID, route.getUserID());
         values.put(KEY_GRADE, String.valueOf(route.getGrade()));
-        values.put(KEY_TERRAIN, gson.toJson(route.getTerrain()));
+        values.put(KEY_TERRAIN, String.valueOf(route.getTerrain()));
         values.put(KEY_LATS, gson.toJson(route.getLatitudes()));
         values.put(KEY_LONGS, gson.toJson(route.getLongitudes()));
         values.put(KEY_DISTANCE, route.getDistance());
-        values.put(KEY_DATE_CREATED, gson.toJson(route.getDateCreated()));
+        values.put(KEY_DATE_CREATED, String.valueOf(route.getDateCreated()));
 
         db.insert(TABLE_ROUTE, null, values);
         db.close(); // close connection to database
