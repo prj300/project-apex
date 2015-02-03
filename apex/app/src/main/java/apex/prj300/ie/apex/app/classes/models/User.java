@@ -22,17 +22,15 @@ public class User {
     public User() { }
 
     public User(int id, String email, Grade grade,
-                int experience, float totalDistance,
-                Time totalTime,
+                float totalDistance, Time totalTime,
                 float maxSpeed, float avgSpeed) {
         this.id = id; // 0
         this.email = email; // 1
         this.grade = grade; // 2
-        this.experience = experience; // 3
-        this.totalDistance = totalDistance; // 4
-        this.totalTime = totalTime; // 5
-        this.maxSpeed = maxSpeed; // 6
-        this.avgSpeed = avgSpeed; // 7
+        this.totalDistance = totalDistance; // 3
+        this.totalTime = totalTime; // 4
+        this.maxSpeed = maxSpeed; // 5
+        this.avgSpeed = avgSpeed; // 6
     }
 
     public int getId() {
@@ -57,14 +55,6 @@ public class User {
 
     public void setGrade(Grade grade) {
         this.grade = grade;
-    }
-
-    public int getExperience() {
-        return experience;
-    }
-
-    public void setExperience(int experience) {
-        this.experience = experience;
     }
 
     public float getTotalDistance() {

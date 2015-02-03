@@ -22,7 +22,7 @@ public class UserDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 30;
+    private static final int DATABASE_VERSION = 31;
     // database name
     private static final String DATABASE_NAME = "userDb";
     // user table name
@@ -31,7 +31,6 @@ public class UserDB extends SQLiteOpenHelper {
     private static String KEY_ID = "id";
     private static String KEY_EMAIL = "email";
     private static String KEY_GRADE = "grade";
-    private static String KEY_EXPERIENCE = "experience";
     private static String KEY_TOTAL_DISTANCE = "totalDistance";
     private static String KEY_TOTAL_TIME = "totalTime";
     private static String KEY_MAX_SPEED = "maxSpeed";
@@ -52,7 +51,6 @@ public class UserDB extends SQLiteOpenHelper {
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_EMAIL + " TEXT UNIQUE,"
                 + KEY_GRADE + " TEXT,"
-                + KEY_EXPERIENCE + " INTEGER,"
                 + KEY_TOTAL_DISTANCE + " FLOAT,"
                 + KEY_TOTAL_TIME + " TEXT,"
                 + KEY_MAX_SPEED + " FLOAT,"
@@ -95,11 +93,10 @@ public class UserDB extends SQLiteOpenHelper {
         values.put(KEY_ID, user.getId()); // 0
         values.put(KEY_EMAIL, user.getEmail()); // 1
         values.put(KEY_GRADE, String.valueOf(user.getGrade())); // 2
-        values.put(KEY_EXPERIENCE, user.getExperience()); // 3
-        values.put(KEY_TOTAL_DISTANCE, user.getTotalDistance()); // 4
-        values.put(KEY_TOTAL_TIME, String.valueOf(user.getTotalTime())); // 5
-        values.put(KEY_MAX_SPEED, user.getMaxSpeed()); // 6
-        values.put(KEY_AVG_SPEED, user.getAvgSpeed()); // 7
+        values.put(KEY_TOTAL_DISTANCE, user.getTotalDistance()); // 3
+        values.put(KEY_TOTAL_TIME, String.valueOf(user.getTotalTime())); // 4
+        values.put(KEY_MAX_SPEED, user.getMaxSpeed()); // 5
+        values.put(KEY_AVG_SPEED, user.getAvgSpeed()); // 6
 
         // insert row
         db.insert(TABLE_USER, null, values);
@@ -123,9 +120,9 @@ public class UserDB extends SQLiteOpenHelper {
             user = new User(cursor.getInt(0),
                     cursor.getString(1),
                     Grade.valueOf(cursor.getString(2)),
-                    cursor.getInt(3), cursor.getFloat(4),
-                    Time.valueOf(cursor.getString(5)),
-                    cursor.getFloat(6), cursor.getFloat(7));
+                    cursor.getFloat(3),
+                    Time.valueOf(cursor.getString(4)),
+                    cursor.getFloat(5), cursor.getFloat(6));
         }
 
         db.close();

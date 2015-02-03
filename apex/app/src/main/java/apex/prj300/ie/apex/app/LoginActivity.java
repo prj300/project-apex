@@ -227,8 +227,8 @@ public class LoginActivity extends Activity {
     private void Login() {
         // Instantiate and build a new user
         user = new User(id, email, grade,
-                experience, totalDistance,
-                totalTime, maxSpeed, avgSpeed);
+                totalDistance, totalTime,
+                maxSpeed, avgSpeed);
 
         // instantiate User Database to store User's details locally
         UserDB db = new UserDB(this);
@@ -255,7 +255,6 @@ public class LoginActivity extends Activity {
         // registration successful
         id = json.getInt(TAG_ID);
         grade = Grade.valueOf(json.getString(TAG_GRADE));
-        experience = json.getInt(TAG_EXPERIENCE);
         totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
         totalTime = Time.valueOf(json.getString(TAG_TOTAL_TIME));
         maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
