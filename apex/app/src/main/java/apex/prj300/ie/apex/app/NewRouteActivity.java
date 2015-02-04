@@ -12,12 +12,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import android.animation.ObjectAnimator;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
@@ -154,29 +156,23 @@ public class NewRouteActivity extends FragmentActivity implements
     protected static Terrain routeTerrain;
     protected List<Double> routeLats = new ArrayList<>();
     protected List<Double> routeLngs = new ArrayList<>();
-    protected static float routeDistance;
     protected Date dateCreated;
 
     /**
      * Results Model Properties
      */
-    protected int routeId;
     protected float mMaxSpeed;
     // protected float routeDistance;
     protected float mAvgSpeed;
-    protected List<Float> mSpeeds;
+    // protected List<Float> mSpeeds;
     protected Time mTime;
-    protected List<Long> mTimes = new ArrayList<>();
-    // protected Date dateCreated;
 
     /**
      * UI Widgets
      */
     // Buttons
     protected ImageView mButtonRecord;
-    protected ImageView mButtonPause;
     protected ImageView mButtonStop;
-    // TextViews
 
 
     @Override
@@ -211,10 +207,13 @@ public class NewRouteActivity extends FragmentActivity implements
         mButtonStop.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG_CONTEXT, "Stop recording.");
-                trackTime();
-                stopUpdatesButtonHandler();
-                saveRouteDialog();
+                // Only do these actions if recording is on
+                if(mRequestingLocationUpdates) {
+                    Log.i(TAG_CONTEXT, "Stop recording.");
+                    trackTime();
+                    stopUpdatesButtonHandler();
+                    saveRouteDialog();
+                }
             }
 
         });
@@ -226,18 +225,20 @@ public class NewRouteActivity extends FragmentActivity implements
     /**
      * User currently logged in
      */
-    private void getCurrentUser() {
+    private User getCurrentUser() {
         UserDB db = new UserDB(this);
 
         mUser = db.getUser();
         mId = mUser.getId();
         db.close();
+
+        return mUser;
     }
 
     /**
      * Getting total journey time
      */
-    public void trackTime() {
+    public Time trackTime() {
         mEndTime = System.currentTimeMillis();
 
         mTimeDifference = mEndTime - mStartTime;
@@ -250,6 +251,8 @@ public class NewRouteActivity extends FragmentActivity implements
 
         mTime = Time.valueOf(time);
         Log.d(TAG_CONTEXT, "Time: " + mTime);
+
+        return mTime;
 
     }
 
@@ -308,7 +311,7 @@ public class NewRouteActivity extends FragmentActivity implements
                             case 2:
                                 routeTerrain = Terrain.Dirt;
                         }
-                        Log.d(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
+                        Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
                         calculateGrade();
                         saveNewRoute();
                     }
@@ -320,8 +323,22 @@ public class NewRouteActivity extends FragmentActivity implements
     /**
      * Calculate route's grade
      */
-    private void calculateGrade() {
+    private Grade calculateGrade() {
 
+        // For now this is the method for deciding a route's grade
+        if(mTotalDistance < 10) {
+            routeGrade = Grade.E;
+        } else if (mTotalDistance < 20) {
+            routeGrade = Grade.D;
+        } else if (mTotalDistance < 35) {
+            routeGrade = Grade.C;
+        } else if (mTotalDistance < 50) {
+            routeGrade = Grade.B;
+        } else {
+            routeGrade = Grade.A;
+        }
+
+        return routeGrade;
     }
 
     /**
@@ -335,17 +352,16 @@ public class NewRouteActivity extends FragmentActivity implements
         // converting to sql.date
         dateCreated = new java.sql.Date(utilDate.getTime());
 
-        routeGrade = Grade.A;
-
         // build route properties from results
-        Route newRoute = new Route(mId, routeGrade, routeTerrain, routeLats, routeLngs, mTotalDistance, dateCreated);
+        Route newRoute = new Route(mId, routeGrade,
+                routeTerrain, routeLats, routeLngs, mTotalDistance, dateCreated);
         db.addRoute(newRoute);
         db.close();
 
         Log.d(TAG_CONTEXT, "Route Saved Locally");
         Log.i(TAG_CONTEXT, "Time: " + mTime);
         Log.i(TAG_CONTEXT, "User: " + mId
-                + ", Route Grade: " + Grade.A
+                + ", Route Grade: " + routeGrade
                 + ", Route Terrain: " + routeTerrain
                 + ", Distance: " + mTotalDistance
                 + ", Date Created: " + dateCreated);
@@ -568,7 +584,7 @@ public class NewRouteActivity extends FragmentActivity implements
      * Tracking speed
      * Average, Max and Instantaneous
      */
-    private void trackSpeed() {
+    private float trackSpeed() {
         // float mCurrentSpeed = Float.NaN;
         /*
         if(!mTimes.isEmpty()) {
@@ -578,12 +594,15 @@ public class NewRouteActivity extends FragmentActivity implements
         }*/
 
         // Avg speed formula
-        float avgSpeed = (mTotalDistance * 360000 / mTimeDifference);
+        double i = (double) ((mTotalDistance * 3600000)/1000) / mTimeDifference;
+        mAvgSpeed = (float) i;
 
         // Format to two decimal places
-        mAvgSpeed = Float.valueOf(String.format("%.2f", avgSpeed));
+        mAvgSpeed = Float.valueOf(String.format("%.2f", mAvgSpeed));
 
         Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
+
+        return mAvgSpeed;
     }
 
     @Override
@@ -591,7 +610,7 @@ public class NewRouteActivity extends FragmentActivity implements
         stopLocationUpdates();
         Toast.makeText(getApplicationContext(),
                 "Lost connection to network!", Toast.LENGTH_SHORT).show();
-        Log.i(TAG_CONTEXT, "Connection failed: ConnectionResult.getErrorCode() = "
+        Log.d(TAG_CONTEXT, "Connection failed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
     }
 
@@ -599,7 +618,7 @@ public class NewRouteActivity extends FragmentActivity implements
     /**
      * Track total distance covered
      */
-    public void trackDistance() {
+    public float trackDistance() {
         if (!mLatLngs.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
             double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
@@ -617,6 +636,8 @@ public class NewRouteActivity extends FragmentActivity implements
                 Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
             }
         }
+
+        return mTotalDistance;
     }
 
     /**
@@ -661,8 +682,13 @@ public class NewRouteActivity extends FragmentActivity implements
 
     }
 
+    /**
+     * AsyncTask
+     * Sending route and results to the server
+     */
     private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
 
+        // Show a progress Dialog before executing
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -685,18 +711,19 @@ public class NewRouteActivity extends FragmentActivity implements
                 params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
                 params.add(new BasicNameValuePair("longitudes", gson.toJson(routeLngs)));
                 params.add(new BasicNameValuePair("distance", String.valueOf(mTotalDistance)));
-                // Results parameters
                 params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
                 params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
                 params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
 
                 JSONObject json = jsonParser.makeHttpRequest(getString(R.string.create_route_url), HttpMethod.POST, params);
-
-                indicator = json.getInt(TAG_SUCCESS);
-                message = json.getString(TAG_MESSAGE);
+                Log.d(TAG_CONTEXT, "JSON Parser: " + json);
+                if(json != null) {
+                    indicator = json.getInt(TAG_SUCCESS);
+                    message = json.getString(TAG_MESSAGE);
+                }
 
             } catch (JSONException e) {
-                Log.d(TAG_CONTEXT, "JSONException " + e.getMessage());
+                Log.e(TAG_CONTEXT, "JSONException " + e.getMessage());
                 Toast.makeText(getApplicationContext(),
                         "Something went wrong!", Toast.LENGTH_LONG).show();
             }
@@ -709,10 +736,14 @@ public class NewRouteActivity extends FragmentActivity implements
             mProgressDialog.dismiss();
             // check indicator
             if(result == 1) {
-                Log.i(TAG_CONTEXT, "Insert successful!");
+                Log.i(TAG_CONTEXT, "Route saved!");
                 Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
+
+                // Go to results activity
+                Intent intent = new Intent(this, ResultsActivity.class);
+                startActivity(intent);
             } else {
-                Log.i(TAG_CONTEXT, "Insert successful!");
+                Log.i(TAG_CONTEXT, "Route not saved!");
                 Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
             }
         }
