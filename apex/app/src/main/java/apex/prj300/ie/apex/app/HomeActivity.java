@@ -110,20 +110,20 @@ public class HomeActivity extends Activity
         switch (position) {
             default:
             case 0:
-                fragment = new FindRouteFragment();
+                fragment = new HomeFragment();
                 break;
             case 1:
                 Intent i = new Intent(getApplicationContext(), NewRouteActivity.class);
                 startActivity(i);
                 break;
             case 2:
-                fragment = new PlaceholderFragment();
+                fragment = new MyRoutesFragment();
                 break;
             case 3:
                 fragment = new FindRouteFragment();
                 break;
             case 4:
-                fragment = new PlaceholderFragment();
+                signOut();
                 break;
         }
         fragmentManager.beginTransaction()
@@ -146,7 +146,6 @@ public class HomeActivity extends Activity
                 mTitle = getString(R.string.action_find_routes);
             case 5:
                 mTitle = getString(R.string.action_sign_out);
-                signOut(); // sign out
                 break;
         }
     }
