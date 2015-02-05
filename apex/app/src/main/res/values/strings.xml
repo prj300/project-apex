@@ -26,5 +26,8 @@
     <string name="no">No</string>
     <string name="pick_terrain">Pick a terrain</string>
     <string name="title_activity_results">ResultsActivity</string>
+    <string name="title_activity_find_aroute">FindARouteActivity</string>
+    <string name="title_activity_find_route">FindRouteActivity</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

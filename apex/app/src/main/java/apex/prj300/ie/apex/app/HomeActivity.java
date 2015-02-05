@@ -6,6 +6,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,8 +24,9 @@ import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 
+
 public class HomeActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, FindRouteFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -98,21 +100,34 @@ public class HomeActivity extends Activity
         Log.i("User: ", user.getEmail());
     }
 
-    private void popToast(String message, String length) {
-
-        if(length.equals("short")) {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-        }
-    }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
+        Fragment fragment;
         FragmentManager fragmentManager = getFragmentManager();
+        fragment = new FindRouteFragment();
+        switch (position) {
+            default:
+            case 0:
+                fragment = new FindRouteFragment();
+                break;
+            case 1:
+                Intent i = new Intent(getApplicationContext(), NewRouteActivity.class);
+                startActivity(i);
+                break;
+            case 2:
+                fragment = new PlaceholderFragment();
+                break;
+            case 3:
+                fragment = new FindRouteFragment();
+                break;
+            case 4:
+                fragment = new PlaceholderFragment();
+                break;
+        }
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, fragment)
                 .commit();
     }
 
@@ -123,9 +138,6 @@ public class HomeActivity extends Activity
                 break;
             case 2:
                 mTitle = getString(R.string.action_start_recording);
-                // start Map Activity
-                Intent intent = new Intent(getApplicationContext(), NewRouteActivity.class);
-                startActivity(intent);
                 break;
             case 3:
                 mTitle = getString(R.string.action_my_routes);
@@ -186,6 +198,11 @@ public class HomeActivity extends Activity
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 
     /**

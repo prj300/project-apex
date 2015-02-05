@@ -740,8 +740,9 @@ public class NewRouteActivity extends FragmentActivity implements
                 Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
 
                 // Go to results activity
-                Intent intent = new Intent(this, ResultsActivity.class);
+                Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
                 startActivity(intent);
+                finish();
             } else {
                 Log.i(TAG_CONTEXT, "Route not saved!");
                 Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
