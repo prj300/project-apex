@@ -5,7 +5,7 @@
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="apex.prj300.ie.apex.app.HomeActivity">
+        tools:context="apex.prj300.ie.apex.app.MainActivity">
 
     <!-- As the main content view, the view below consumes the entire
          space available using match_parent in both dimensions. -->
@@ -25,7 +25,7 @@
               android:layout_width="@dimen/navigation_drawer_width"
               android:layout_height="match_parent"
               android:layout_gravity="start"
-              android:name="apex.prj300.ie.apex.app.NavigationDrawerFragment"
+              android:name="apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment"
               tools:layout="@layout/fragment_navigation_drawer"/>
 
 </android.support.v4.widget.DrawerLayout>

@@ -1,53 +1,40 @@
 package apex.prj300.ie.apex.app;
 
 import java.sql.Time;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import android.animation.ObjectAnimator;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.astuetz.PagerSlidingTabStrip;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -56,11 +43,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
@@ -87,10 +70,12 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 
 public class NewRouteActivity extends FragmentActivity implements
-        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
+        ConnectionCallbacks, OnConnectionFailedListener,
+        LocationListener {
 
     // progress dialog for AsyncTask
     private ProgressDialog mProgressDialog;
+
     /**
      * JSONParser that will parse data to send to server
      */
@@ -179,12 +164,13 @@ public class NewRouteActivity extends FragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_route);
-        setUpMapIfNeeded();
+        // setUpMapIfNeeded();
         final ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
         getCurrentUser();
+
 
         // Locate UI Widgets
         mButtonRecord = (ImageView) findViewById(R.id.btnRecord);
@@ -304,11 +290,11 @@ public class NewRouteActivity extends FragmentActivity implements
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which){
-                            case 0:
-                                routeTerrain = Terrain.Road;
                             case 1:
-                                routeTerrain = Terrain.Gravel;
+                                routeTerrain = Terrain.Road;
                             case 2:
+                                routeTerrain = Terrain.Gravel;
+                            case 3:
                                 routeTerrain = Terrain.Dirt;
                         }
                         Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
@@ -354,7 +340,8 @@ public class NewRouteActivity extends FragmentActivity implements
 
         // build route properties from results
         Route newRoute = new Route(mId, routeGrade,
-                routeTerrain, routeLats, routeLngs, mTotalDistance, dateCreated);
+                routeTerrain, routeLats, routeLngs,
+                mTotalDistance, dateCreated);
         db.addRoute(newRoute);
         db.close();
 
@@ -374,7 +361,8 @@ public class NewRouteActivity extends FragmentActivity implements
      */
     public void saveResults() {
         ResultsDB db = new ResultsDB(this);
-        Results newResult = new Results(mTotalDistance, mMaxSpeed, mAvgSpeed, mTime, dateCreated);
+        Results newResult = new Results(mTotalDistance,
+                mMaxSpeed, mAvgSpeed, mTime, dateCreated);
         db.addResult(newResult);
         db.close();
         Log.i(TAG_CONTEXT, "Total Distance: " + mTotalDistance
@@ -394,6 +382,7 @@ public class NewRouteActivity extends FragmentActivity implements
         }
     }
 
+    /*
     private void setUpMapIfNeeded() {
         if(mMap != null) {
             return;
@@ -408,7 +397,7 @@ public class NewRouteActivity extends FragmentActivity implements
 
     private void setUpMap() {
         mMap.setMyLocationEnabled(true);
-    }
+    }*/
 
 
     /**
@@ -427,7 +416,7 @@ public class NewRouteActivity extends FragmentActivity implements
     /**
      * Sets up location request boundaries
      */
-    private void createLocationRequest() {
+    public void createLocationRequest() {
         mLocationRequest = new LocationRequest();
 
         // Sets desired interval for active location updates
@@ -749,4 +738,5 @@ public class NewRouteActivity extends FragmentActivity implements
             }
         }
     }
+
 }

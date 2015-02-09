@@ -1,25 +1,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_centerHorizontal="true"
+    android:background="@color/apex_blue"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <!--
-    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/pager"
-        android:layout_width="match_parent" android:layout_height="450dip"
-        tools:context="apex.prj300.ie.apex.app.NewRouteActivity"
-        android:layout_above="@+id/buttons" />-->
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="340dp"
+    <android.support.v4.view.ViewPager
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
         android:layout_above="@+id/buttons"
-        android:id="@+id/map"
-        tools:context="apex.prj300.ie.apex.app.RecordActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_alignParentTop="true" />
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
 
     <LinearLayout
         android:background="@color/apex_black"
@@ -31,25 +21,25 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true">
 
-    <ImageView
-        android:background="@null"
-        android:id="@+id/btnRecord"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_margin="0dip"
-        android:src="@drawable/button_record" />
+        <ImageView
+            android:background="@null"
+            android:id="@+id/btnRecord"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="0dip"
+            android:src="@drawable/button_record" />
 
-    <TextView
-        android:layout_width="30dip"
-        android:layout_height="match_parent" />
+        <TextView
+            android:layout_width="30dip"
+            android:layout_height="match_parent" />
 
-    <ImageView
-        android:background="@null"
-        android:id="@+id/btnStop"
-        android:layout_width="100dip"
-        android:layout_height="100dip"
-        android:layout_margin="4dip"
-        android:src="@drawable/button_stop" />
+        <ImageView
+            android:background="@null"
+            android:id="@+id/btnStop"
+            android:layout_width="100dip"
+            android:layout_height="100dip"
+            android:layout_margin="4dip"
+            android:src="@drawable/button_stop" />
 
     </LinearLayout>
 
