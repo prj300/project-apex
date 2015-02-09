@@ -43,6 +43,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -164,7 +165,7 @@ public class NewRouteActivity extends FragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_route);
-        // setUpMapIfNeeded();
+        setUpMapIfNeeded();
         final ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         actionBar.setHomeButtonEnabled(true);
@@ -382,7 +383,7 @@ public class NewRouteActivity extends FragmentActivity implements
         }
     }
 
-    /*
+
     private void setUpMapIfNeeded() {
         if(mMap != null) {
             return;
@@ -397,7 +398,7 @@ public class NewRouteActivity extends FragmentActivity implements
 
     private void setUpMap() {
         mMap.setMyLocationEnabled(true);
-    }*/
+    }
 
 
     /**
