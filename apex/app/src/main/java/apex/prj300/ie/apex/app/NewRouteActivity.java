@@ -79,17 +79,88 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 
 public class NewRouteActivity extends FragmentActivity
-        implements ActionBar.TabListener {
+        implements ActionBar.TabListener, LocationListener,
+        ConnectionCallbacks, OnConnectionFailedListener{
 
+    JSONParser jsonParser = new JSONParser();
+    Gson gson = new Gson();
+    private ProgressDialog mProgressDialog;
+    /**
+     * Static variable
+     */
+    // Activity context
     private static final String TAG_CONTEXT = "NewRouteActivity";
+    protected static final String TAG_SUCCESS = "success";
+    private static final String TAG_MESSAGE = "message";
+    private static int indicator = 0;
+    private static String message;
 
-    // Define an interface to pass a location to MyMapFragment
+    // Desired interval for location updates
+    public static final long UPDATE_INTERVAL_MS = 1000;
+    // Fastest rate for location updates
+    public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
+
+
+    /**
+     * Variables that will be used and changed within the activity lifecycle
+     */
+    // Entry point to Play Services
+    protected GoogleApiClient mGoogleApiClient;
+    // Stores parameters for requests to FusedLocationProviderApi
+    protected LocationRequest mLocationRequest;
+    // Represents a Geographical location
+    protected Location mLocation;
+    protected static double mLatitude; // current latitude
+    protected static double mLongitude; // current longitude
+    // Tracks whether route should be recorded or not
+    protected Boolean mRecordRoute;
+
+    /**
+     * User Model properties (as needed)
+     */
+    protected static User mUser = new User();
+    protected static int mId;
+
+    /**
+     * Route Model Properties
+     */
+    protected static Grade routeGrade;
+    protected static Terrain routeTerrain;
+    protected List<Double> routeLats = new ArrayList<>();
+    protected List<Double> routeLngs = new ArrayList<>();
+    protected Date dateCreated;
+
+    /**
+     * Results Model Properties
+     */
+    protected float mMaxSpeed;
+    // protected float routeDistance;
+    protected float mAvgSpeed;
+    // protected List<Float> mSpeeds;
+    protected Time mTime;
+
+    // Stores user's geographical points
+    protected static List<LatLng> mLatLngs = new ArrayList<>();
+    // Displays user's geographical points
+    protected Polyline line;
+
+    // Tracks distance covered
+    protected static float mDistance;
+    protected static float mTotalDistance;
+
+    // Tracks time elapsed
+    protected Long mStartTime; // (milliseconds)
+    protected Long mEndTime;
+    protected Long mTimeDifference;
+
+
+    // Defining an interface to pass a location to MyMapFragment
     public interface PassLocationListener {
-        void onPassLocation(Location location);
+        void onPassLocation(Location location, Boolean recording);
     }
 
     protected PassLocationListener mLocationPasser;
-    protected Boolean mRequestLocationUpdates;
+    protected Boolean mRequestingLocationUpdates;
 
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
     ViewPager mViewPager;
@@ -99,6 +170,9 @@ public class NewRouteActivity extends FragmentActivity
      */
     protected ImageView mButtonRecord;
     protected ImageView mButtonStop;
+
+    // boolean to handle network state
+    protected static boolean isConnected;
 
 
     public void onCreate(Bundle savedInstance) {
@@ -137,31 +211,507 @@ public class NewRouteActivity extends FragmentActivity
                     .setTabListener(this));
         }
 
+        // Locate UI widgets
         mButtonRecord = (ImageView) findViewById(R.id.btnRecord);
         mButtonStop = (ImageView) findViewById(R.id.btnStop);
 
-        mRequestLocationUpdates = false;
+        // Set Location Updates status to false
+        mRequestingLocationUpdates = false;
+        mRecordRoute = false;
+        mTotalDistance = 0;
 
+        // Create Listeners for Record/Stop buttons
         mButtonRecord.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG_CONTEXT, "Start Recording clicked.");
-                mRequestLocationUpdates = true;
+                Log.d(TAG_CONTEXT, "Start Recording.");
+                mStartTime = System.currentTimeMillis(); // start timer
+                startUpdatesButtonHandler();
             }
         });
-
         mButtonStop.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG_CONTEXT, "Stop Recording clicked.");
-                if(mRequestLocationUpdates) {
-                    mRequestLocationUpdates = false;
+                // Only do these actions if recording is on
+                if(mRequestingLocationUpdates) {
+                    Log.d(TAG_CONTEXT, "Stop recording.");
+                    getTime();
+                    stopUpdatesButtonHandler();
+                    saveRouteDialog();
                 }
-
             }
+
         });
+        // get ID of current user logged in
+        mId = getUser().getId();
+        buildGoogleApiClient();
 
     }
+
+    /**
+     * User currently logged in
+     */
+    private User getUser() {
+        UserDB db = new UserDB(this);
+
+        User user = db.getUser();
+        mId = mUser.getId();
+        db.close();
+
+        return user;
+    }
+
+    /**
+     * Build entry point params for Play Services
+     */
+    protected synchronized void buildGoogleApiClient() {
+        Log.i(TAG_CONTEXT, "Building GoogleApiClient...");
+        mGoogleApiClient = new Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        createLocationRequest();
+    }
+
+    /**
+     * Getting total journey time
+     */
+    public Time getTime() {
+        mEndTime = System.currentTimeMillis();
+
+        mTimeDifference = mEndTime - mStartTime;
+
+        // mTimes.add(mTimeDifference); // logging each time instance
+
+        String time = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(mTimeDifference),
+                TimeUnit.MILLISECONDS.toMinutes(mTimeDifference) % TimeUnit.HOURS.toMinutes(1),
+                TimeUnit.MILLISECONDS.toSeconds(mTimeDifference) % TimeUnit.MINUTES.toSeconds(1));
+
+        mTime = Time.valueOf(time);
+        Log.d(TAG_CONTEXT, "Time: " + mTime);
+
+        return mTime;
+
+    }
+
+    /**
+     * AlertDialog to save or discard new route
+     */
+    public void saveRouteDialog() {
+        // Instantiate an AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        // Set main message
+        builder.setMessage(R.string.dialog_save_route)
+                // Set up buttons, and what action to take
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG_CONTEXT, "Saving new route");
+                        chooseTerrainDialog(); // choose a terrain
+                    }
+                })
+                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+        // Crate builder and display
+        builder.create();
+        builder.show();
+    }
+
+    /**
+     * Check to see if there is an internet connection
+     * If none return false
+     */
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        isConnected = networkInfo != null
+                && networkInfo.isConnected()
+                && networkInfo.isAvailable();
+        return isConnected;
+    }
+
+
+    public void chooseTerrainDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        builder.setTitle(R.string.pick_terrain)
+                .setItems(R.array.terrains_array, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case 1:
+                                routeTerrain = Terrain.Road;
+                            case 2:
+                                routeTerrain = Terrain.Gravel;
+                            case 3:
+                                routeTerrain = Terrain.Dirt;
+                        }
+                        Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
+                        calculateGrade();
+                        saveNewRoute();
+                    }
+                });
+        builder.create();
+        builder.show();
+    }
+
+    /**
+     * Calculate route's grade
+     */
+    private Grade calculateGrade() {
+
+        // For now this is the method for deciding a route's grade
+        if(mTotalDistance < 10) {
+            routeGrade = Grade.E;
+        } else if (mTotalDistance < 20) {
+            routeGrade = Grade.D;
+        } else if (mTotalDistance < 35) {
+            routeGrade = Grade.C;
+        } else if (mTotalDistance < 50) {
+            routeGrade = Grade.B;
+        } else {
+            routeGrade = Grade.A;
+        }
+
+        return routeGrade;
+    }
+
+    /**
+     * Saving route to SQLite Database
+     */
+    public void saveNewRoute() {
+        RouteDB db = new RouteDB(this);
+
+        // getting today's date
+        java.util.Date utilDate = new java.util.Date();
+        // converting to sql.date
+        dateCreated = new java.sql.Date(utilDate.getTime());
+
+        // build route properties from results
+        Route newRoute = new Route(mId, routeGrade,
+                routeTerrain, routeLats, routeLngs,
+                mTotalDistance, dateCreated);
+        db.addRoute(newRoute);
+        db.close();
+
+        Log.d(TAG_CONTEXT, "Route Saved Locally");
+        Log.i(TAG_CONTEXT, "Time: " + mTime);
+        Log.i(TAG_CONTEXT, "User: " + mId
+                + ", Route Grade: " + routeGrade
+                + ", Route Terrain: " + routeTerrain
+                + ", Distance: " + mTotalDistance
+                + ", Date Created: " + dateCreated);
+
+        saveResults();
+    }
+
+    /**
+     * Saving results
+     */
+    public void saveResults() {
+        ResultsDB db = new ResultsDB(this);
+        Results newResult = new Results(mTotalDistance,
+                mMaxSpeed, mAvgSpeed, mTime, dateCreated);
+        db.addResult(newResult);
+        db.close();
+        Log.i(TAG_CONTEXT, "Total Distance: " + mTotalDistance
+                + ", Max Speed: " + mMaxSpeed
+                + ", Average Speed: " + mAvgSpeed
+                + ", Time: " + mTime
+                + ", Date Created: " + dateCreated);
+
+        isNetworkAvailable(); // check for connection
+        Log.d(TAG_CONTEXT, "Network availability = " + isConnected);
+        if (isConnected) {
+            new SaveNewRoute().execute();
+        } else {
+            Log.d(TAG_CONTEXT, "No network connection!");
+            Toast.makeText(getApplicationContext(),
+                    "No network connection!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Sets up location request boundaries
+     */
+    public void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+
+        // Sets desired interval for active location updates
+        mLocationRequest.setInterval(UPDATE_INTERVAL_MS);
+
+        // Sets fastest interval for location updates
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_MS);
+
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    /**
+     * Handles the Start Updates button and requests start of location updates. Does nothing if
+     * updates have already been requested.
+     */
+    private void startUpdatesButtonHandler() {
+        if (!mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = true;
+            setButtonsEnabledState();
+            startLocationUpdates();
+        }
+    }
+
+    /**
+     * Handles the Stop Updates button, and requests removal of location updates. Does nothing if
+     * updates were not previously requested.
+     */
+    public void stopUpdatesButtonHandler() {
+        if (mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = false;
+            setButtonsEnabledState();
+            stopLocationUpdates();
+        }
+    }
+
+    private void setButtonsEnabledState() {
+        if (mRequestingLocationUpdates) {
+            mButtonRecord.setEnabled(false);
+            mButtonStop.setEnabled(true);
+        } else {
+            mButtonRecord.setEnabled(true);
+            mButtonStop.setEnabled(false);
+        }
+    }
+
+    /**
+     * Removes location updates from the FusedLocationApi
+     */
+    private void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.
+                removeLocationUpdates(mGoogleApiClient, this);
+    }
+
+    /**
+     * Requests location updates from FusedLocationApi
+     */
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this
+        );
+    }
+
+    /**
+     * Tracking speed
+     * Average, Max and Instantaneous
+     */
+    private float getSpeed() {
+        // float mCurrentSpeed = Float.NaN;
+        /*
+        if(!mTimes.isEmpty()) {
+            long lastTime = mTimes.get(mTimes.size() -1);
+            (Math.pow(Math.sqrt(mLatitude - lastLat), 2) + Math.pow(Math.sqrt(mLongitude - lastLong), 2));
+        }*/
+
+        // Avg speed formula
+        double i = (double) ((mTotalDistance * 3600000)/1000) / mTimeDifference;
+        mAvgSpeed = (float) i;
+
+        // Format to two decimal places
+        mAvgSpeed = Float.valueOf(String.format("%.2f", mAvgSpeed));
+
+        Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
+
+        return mAvgSpeed;
+    }
+
+    /**
+     * Track total distance covered
+     */
+    public float getDistance() {
+        if (!mLatLngs.isEmpty()) {
+            Location lastLocation = new Location("LastLocation");
+            double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
+            double y = mLatLngs.get(mLatLngs.size() - 1).longitude; // previous longitude point in array
+
+            // set previous location parameters
+            lastLocation.setLatitude(x);
+            lastLocation.setLongitude(y);
+
+            if (mLocation != lastLocation) {
+                // find distance between two neighbouring points
+                // add to total distance
+                mDistance = lastLocation.distanceTo(mLocation); // metres
+                mTotalDistance += mDistance; // total metres
+                Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
+            }
+        }
+
+        return mTotalDistance;
+    }
+
+    /**
+     * Save location to array
+     */
+    public void saveLocation() {
+        LatLng latLong = new LatLng(mLatitude, mLongitude);
+        // save points to array
+        Log.i(TAG_CONTEXT, "Saving points: " + latLong);
+        mLatLngs.add(new LatLng(mLatitude, mLongitude));
+        routeLats.add(mLatitude);
+        routeLngs.add(mLongitude);
+    }
+
+
+    /**
+     * Location Listener
+     */
+    @Override
+    public void onLocationChanged(Location location) {
+        mLocation = location;
+        mLatitude = location.getLatitude();
+        mLongitude = location.getLongitude();
+        mLocationPasser.onPassLocation(mLocation, mRequestingLocationUpdates);
+        getDistance();
+        getTime();
+        getSpeed();
+        saveLocation();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (mGoogleApiClient.isConnected() && mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop location updates but don't disconnect the GoogleApiClient
+        // stopLocationUpdates();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        /*
+        if(mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+        */
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG_CONTEXT, "Connected to GoogleApiClient");
+
+        if (mLocation == null) {
+            mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        }
+
+        // If user presses Start button before GoogleApiClient connects
+        // set mRequestingLocationUpdates to true
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        // Connection to Play Services lost
+        // Try to re-connect
+        Log.i(TAG_CONTEXT, "Connection Suspended");
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        stopLocationUpdates();
+        Toast.makeText(getApplicationContext(),
+                "Lost connection to network!", Toast.LENGTH_SHORT).show();
+        Log.d(TAG_CONTEXT, "Connection failed: ConnectionResult.getErrorCode() = "
+                + connectionResult.getErrorCode());
+    }
+
+    /**
+     * AsyncTask
+     * Sending route and results to the server
+     */
+    private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
+
+        // Show a progress Dialog before executing
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
+            mProgressDialog.setMessage("Saving new route...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(true);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Integer doInBackground(Route... args) {
+
+            try {
+                List<NameValuePair> params = new ArrayList<>();
+                // Route parameters
+                params.add(new BasicNameValuePair("user_id", String.valueOf(mId)));
+                params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
+                params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
+                params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
+                params.add(new BasicNameValuePair("longitudes", gson.toJson(routeLngs)));
+                params.add(new BasicNameValuePair("distance", String.valueOf(mTotalDistance)));
+                params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
+                params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
+                params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
+
+                JSONObject json = jsonParser.makeHttpRequest(getString(R.string.create_route_url), HttpMethod.POST, params);
+                Log.d(TAG_CONTEXT, "JSON Parser: " + json);
+                if(json != null) {
+                    indicator = json.getInt(TAG_SUCCESS);
+                    message = json.getString(TAG_MESSAGE);
+                }
+
+            } catch (JSONException e) {
+                Log.e(TAG_CONTEXT, "JSONException " + e.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        "Something went wrong!", Toast.LENGTH_LONG).show();
+            }
+            return indicator;
+        }
+
+        protected void onPostExecute(Integer result) {
+            Log.d(TAG_CONTEXT, "Success: " + indicator + ", Message: " + message);
+            // dismiss Progress Dialog
+            mProgressDialog.dismiss();
+            // check indicator
+            if(result == 1) {
+                Log.i(TAG_CONTEXT, "Route saved!");
+                Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
+
+                // Go to results activity
+                // Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
+                // startActivity(intent);
+                finish();
+            } else {
+                Log.i(TAG_CONTEXT, "Route not saved!");
+                Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+
 
     /**
      * Update which fragment will be displayed based on the selected tab
@@ -196,7 +746,8 @@ public class NewRouteActivity extends FragmentActivity
                 default:
                 case 0:
                     MyMapFragment mMapFragment = new MyMapFragment();
-                    mLocationPasser = mMapFragment; // Register Location Passer interface with Map Fragment
+                    // Register Location Passer interface with Map Fragment
+                    mLocationPasser = mMapFragment;
                     return mMapFragment;
                 case 1:
                     return new MyStatsFragment();
@@ -217,7 +768,6 @@ public class NewRouteActivity extends FragmentActivity
                     return getString(R.string.title_statistics).toUpperCase();
             }
         }
-
 
     }
 }
