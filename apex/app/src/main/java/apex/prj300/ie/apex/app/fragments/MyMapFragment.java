@@ -1,6 +1,7 @@
 package apex.prj300.ie.apex.app.fragments;
 
 import android.app.Activity;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,12 +23,15 @@ import static apex.prj300.ie.apex.app.NewRouteActivity.*;
  * Created by Enda on 09/02/2015.
  */
 public class MyMapFragment extends Fragment implements
-        RequestLocationUpdatesListener {
+        PassLocationListener {
 
     private static final String TAG_CONTEXT = "MyMapFragment";
     private SupportMapFragment fragment;
     private GoogleMap mMap;
 
+    /**
+     * Create view
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -35,6 +39,9 @@ public class MyMapFragment extends Fragment implements
         return inflater.inflate(R.layout.fragment_map, container, false);
     }
 
+    /**
+     * Create activity
+     */
     @Override
     public void onActivityCreated(Bundle savedInstance) {
         super.onActivityCreated(savedInstance);
@@ -56,8 +63,15 @@ public class MyMapFragment extends Fragment implements
         }
     }
 
+    /**
+     * Instead of registering a LocationListener
+     * on both this fragment's activity and
+     * NewRouteActivity, the location will be passed from the
+     * Main Activity to this fragment. Virtually the same thing
+     * but ensures the values stay the same/are not duplicates
+     */
     @Override
-    public void onRequestLocationUpdates(boolean recording) {
-        Log.i(TAG_CONTEXT, "Recording? = " + recording);
+    public void onPassLocation(Location location) {
+        Log.d(TAG_CONTEXT, "My Location: " + location);
     }
 }

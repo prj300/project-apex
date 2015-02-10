@@ -83,18 +83,23 @@ public class NewRouteActivity extends FragmentActivity
 
     private static final String TAG_CONTEXT = "NewRouteActivity";
 
-    public interface RequestLocationUpdatesListener {
-        void onRequestLocationUpdates(boolean recording);
+    // Define an interface to pass a location to MyMapFragment
+    public interface PassLocationListener {
+        void onPassLocation(Location location);
     }
 
-    protected RequestLocationUpdatesListener mRequestingLocationUpdates;
+    protected PassLocationListener mLocationPasser;
     protected Boolean mRequestLocationUpdates;
 
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
     ViewPager mViewPager;
 
+    /**
+     * UI Widgets
+     */
     protected ImageView mButtonRecord;
     protected ImageView mButtonStop;
+
 
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
@@ -142,7 +147,6 @@ public class NewRouteActivity extends FragmentActivity
             public void onClick(View v) {
                 Log.d(TAG_CONTEXT, "Start Recording clicked.");
                 mRequestLocationUpdates = true;
-                mRequestingLocationUpdates.onRequestLocationUpdates(mRequestLocationUpdates);
             }
         });
 
@@ -152,7 +156,6 @@ public class NewRouteActivity extends FragmentActivity
                 Log.d(TAG_CONTEXT, "Stop Recording clicked.");
                 if(mRequestLocationUpdates) {
                     mRequestLocationUpdates = false;
-                    mRequestingLocationUpdates.onRequestLocationUpdates(mRequestLocationUpdates);
                 }
 
             }
@@ -160,8 +163,9 @@ public class NewRouteActivity extends FragmentActivity
 
     }
 
-
-
+    /**
+     * Update which fragment will be displayed based on the selected tab
+     */
     @Override
     public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
         mViewPager.setCurrentItem(tab.getPosition());
@@ -192,7 +196,7 @@ public class NewRouteActivity extends FragmentActivity
                 default:
                 case 0:
                     MyMapFragment mMapFragment = new MyMapFragment();
-                    mRequestingLocationUpdates = mMapFragment;
+                    mLocationPasser = mMapFragment; // Register Location Passer interface with Map Fragment
                     return mMapFragment;
                 case 1:
                     return new MyStatsFragment();
@@ -201,7 +205,7 @@ public class NewRouteActivity extends FragmentActivity
 
         @Override
         public int getCount() {
-            return 2;
+            return 2; // 2 tabs
         }
 
         @Override
