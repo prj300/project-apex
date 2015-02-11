@@ -156,7 +156,7 @@ public class NewRouteActivity extends FragmentActivity
 
     // Defining an interface to pass a location to MyMapFragment
     public interface PassLocationListener {
-        void onPassLocation(Location location, Boolean recording);
+        void onPassLocation(Location location);
     }
 
     protected PassLocationListener mLocationPasser;
@@ -571,7 +571,7 @@ public class NewRouteActivity extends FragmentActivity
         mLocation = location;
         mLatitude = location.getLatitude();
         mLongitude = location.getLongitude();
-        mLocationPasser.onPassLocation(mLocation, mRequestingLocationUpdates);
+        mLocationPasser.onPassLocation(mLocation);
         getDistance();
         getTime();
         getSpeed();

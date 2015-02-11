@@ -29,7 +29,6 @@ import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        FindRouteFragment.OnFragmentInteractionListener,
         HomeFragment.OnFragmentInteractionListener,
         MyRoutesFragment.OnFragmentInteractionListener{
 
@@ -124,7 +123,6 @@ public class MainActivity extends Activity
                 fragment = new MyRoutesFragment();
                 break;
             case 3:
-                fragment = new FindRouteFragment();
                 break;
             case 4:
                 signOut();

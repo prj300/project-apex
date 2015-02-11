@@ -19,6 +19,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
+
 import apex.prj300.ie.apex.app.R;
 
 import static apex.prj300.ie.apex.app.NewRouteActivity.*;
@@ -33,8 +35,8 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     private SupportMapFragment fragment;
     private GoogleMap mMap;
     private Location mLocation;
-    private Boolean isRecording;
-    Polyline mLine;
+    // Arraylist to store all LatLng points received from parent activity
+    private static ArrayList<LatLng> mLatLngs = new ArrayList<>();
 
     /**
      * Create view
@@ -70,11 +72,12 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     public void onResume() {
         super.onResume();
         if(mMap == null) {
+            // Google Map = fragment's Map
             mMap = fragment.getMap();
             mMap.setMyLocationEnabled(true);
             // mMap.getMyLocation(); returns null
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom
-                    (new LatLng(54.25075931364725, -8.437499997500026), 2.5f));
+                    (new LatLng(54.25075931364725, -8.437499997500026), 12.5f));
         }
     }
 
@@ -87,10 +90,8 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      * but ensures the values stay the same/are not duplicates
      */
     @Override
-    public void onPassLocation(Location location, Boolean recording) {
+    public void onPassLocation(Location location) {
         mLocation = location;
-        // decides whether or not a route is being recorded
-        isRecording = recording;
         Log.d(TAG_CONTEXT, "My Location: " + location);
         updateUI();
     }
@@ -100,23 +101,33 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      * Follow user as they move
      */
     private void updateUI() {
+        // Create a new LatLng from location passed from Parent Activity
         LatLng mLatLng = new LatLng(mLocation.getLatitude(),
                 mLocation.getLongitude());
+        // Add mLatLng to list
+        mLatLngs.add(mLatLng);
 
-        // Only draw Polyline if the user is recording
-        if(isRecording) {
-            mLine = mMap.addPolyline(new PolylineOptions()
-                    .add(mLatLng)
+        // Plot array on map
+            mMap.addPolyline(new PolylineOptions()
+                    .addAll(mLatLngs)
                     .width(6f)
-                    .color(Color.CYAN)
+                    .color(Color.BLUE)
                     .geodesic(true));
-        }
 
+        // Update Camera to follow the user
         updateCamera(mLatLng);
     }
 
+    /**
+     * Update the camera to follow the user
+     */
     private void updateCamera(LatLng mLatLng) {
         // Move camera to updated position on map
+        // Zoom to specified zoom level at start
+        /*if(mLatLngs.size() == 1) {
+            CameraUpdateFactory.newLatLngZoom(mLatLng, 16.5F);
+        }*/
+        // Zoom level is at level currently specified by user/device
         CameraUpdateFactory.newLatLngZoom(mLatLng,
                 mMap.getCameraPosition().zoom);
     }
