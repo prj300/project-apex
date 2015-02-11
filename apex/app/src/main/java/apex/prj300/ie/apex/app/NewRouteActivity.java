@@ -72,6 +72,8 @@ import apex.prj300.ie.apex.app.classes.models.Route;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.MyMapFragment;
 import apex.prj300.ie.apex.app.fragments.MyStatsFragment;
+import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
+import apex.prj300.ie.apex.app.interfaces.PassStatsListener;
 
 import static android.view.View.*;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
@@ -80,7 +82,7 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 public class NewRouteActivity extends FragmentActivity
         implements ActionBar.TabListener, LocationListener,
-        ConnectionCallbacks, OnConnectionFailedListener{
+        ConnectionCallbacks, OnConnectionFailedListener {
 
     JSONParser jsonParser = new JSONParser();
     Gson gson = new Gson();
@@ -153,13 +155,10 @@ public class NewRouteActivity extends FragmentActivity
     protected Long mEndTime;
     protected Long mTimeDifference;
 
-
-    // Defining an interface to pass a location to MyMapFragment
-    public interface PassLocationListener {
-        void onPassLocation(Location location);
-    }
-
+    // Declare interfaces for passing information between fragments
     protected PassLocationListener mLocationPasser;
+    protected PassStatsListener mStatsPasser;
+
     protected Boolean mRequestingLocationUpdates;
 
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
@@ -750,7 +749,10 @@ public class NewRouteActivity extends FragmentActivity
                     mLocationPasser = mMapFragment;
                     return mMapFragment;
                 case 1:
-                    return new MyStatsFragment();
+                    MyStatsFragment mStatsFragment = new MyStatsFragment();
+                    // Register Stats Passer interface with Stats Fragment
+                    mStatsPasser = mStatsFragment;
+                    return mStatsFragment;
             }
         }
 

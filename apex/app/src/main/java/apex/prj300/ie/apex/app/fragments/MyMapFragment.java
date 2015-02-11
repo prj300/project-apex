@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 
 import apex.prj300.ie.apex.app.R;
+import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
 
 import static apex.prj300.ie.apex.app.NewRouteActivity.*;
 
@@ -35,7 +36,7 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     private SupportMapFragment fragment;
     private GoogleMap mMap;
     private Location mLocation;
-    // Arraylist to store all LatLng points received from parent activity
+    // ArrayList to store all LatLng points received from parent activity
     private static ArrayList<LatLng> mLatLngs = new ArrayList<>();
 
     /**
