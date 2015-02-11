@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,7 +36,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     private static final String TAG_CONTEXT = "MyMapFragment";
     private SupportMapFragment fragment;
     private GoogleMap mMap;
-    private Location mLocation;
     // ArrayList to store all LatLng points received from parent activity
     private static ArrayList<LatLng> mLatLngs = new ArrayList<>();
 
@@ -77,8 +77,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
             mMap = fragment.getMap();
             mMap.setMyLocationEnabled(true);
             // mMap.getMyLocation(); returns null
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom
-                    (new LatLng(54.25075931364725, -8.437499997500026), 12.5f));
         }
     }
 
@@ -92,19 +90,21 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      */
     @Override
     public void onPassLocation(Location location) {
-        mLocation = location;
         Log.d(TAG_CONTEXT, "My Location: " + location);
-        updateUI();
+        LatLng mLatLng = new LatLng(location.getLatitude(),
+                location.getLongitude());
+        updateCamera(mLatLng);
+        updateUI(location);
     }
 
     /**
      * Update Map Interface in real-time
      * Follow user as they move
      */
-    private void updateUI() {
+    private void updateUI(Location location) {
         // Create a new LatLng from location passed from Parent Activity
-        LatLng mLatLng = new LatLng(mLocation.getLatitude(),
-                mLocation.getLongitude());
+        LatLng mLatLng = new LatLng(location.getLatitude(),
+                location.getLongitude());
         // Add mLatLng to list
         mLatLngs.add(mLatLng);
 
@@ -115,21 +115,26 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
                     .color(Color.BLUE)
                     .geodesic(true));
 
-        // Update Camera to follow the user
-        updateCamera(mLatLng);
     }
 
     /**
      * Update the camera to follow the user
      */
-    private void updateCamera(LatLng mLatLng) {
-        // Move camera to updated position on map
-        // Zoom to specified zoom level at start
-        /*if(mLatLngs.size() == 1) {
-            CameraUpdateFactory.newLatLngZoom(mLatLng, 16.5F);
-        }*/
-        // Zoom level is at level currently specified by user/device
-        CameraUpdateFactory.newLatLngZoom(mLatLng,
-                mMap.getCameraPosition().zoom);
+    private void updateCamera(LatLng latLng) {
+        CameraUpdate cameraUpdate;
+
+        // Move the camera to specified zoom level and location
+        cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.5f);
+        mMap.animateCamera(cameraUpdate);
+
+        // Move the camera to location at whatever zoom
+        // level camera is currently at. This only happens
+        // if list of LatLngs is not empty
+        if(!mLatLngs.isEmpty()) {
+            // Zoom level is at level currently specified by user/device
+            cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,
+                    mMap.getCameraPosition().zoom);
+            mMap.animateCamera(cameraUpdate);
+        }
     }
 }

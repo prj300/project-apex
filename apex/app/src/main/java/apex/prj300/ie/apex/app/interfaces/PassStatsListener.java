@@ -11,6 +11,7 @@ import java.sql.Time;
  */
 public interface PassStatsListener {
     void onMaxSpeedChanged(float maxSpeed);
+    void onCurrentSpeedChanged(float currentSpeed);
     void onAvgSpeedChanged(float avgSpeed);
     void onDistanceChanged(float distance);
     void onTimeChanged(Time time);

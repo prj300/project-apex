@@ -2,6 +2,7 @@ package apex.prj300.ie.apex.app.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,30 +38,37 @@ public class MyStatsFragment extends Fragment implements PassStatsListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
         View mView = inflater.inflate(R.layout.fragment_stats, container, false);
+        mTextAvgSpeed = (TextView) mView.findViewById(R.id.txtHeadingDistance);
         return mView;
     }
 
 
-
     @Override
-    public void onMaxSpeedChanged(float maxSpeed) {
-
+    public void onCurrentSpeedChanged(float currentSpeed) {
+        Log.i(TAG_CONTEXT, "Speed: " + currentSpeed);
     }
 
     @Override
-    public void onAvgSpeedChanged(float avgSpeed) {
+    public void onMaxSpeedChanged(float maxSpeed) {
+        Log.i(TAG_CONTEXT, "Max Speed: " + maxSpeed);
+    }
 
+    /**
+     *
+     */
+    @Override
+    public void onAvgSpeedChanged(float avgSpeed) {
+        Log.i(TAG_CONTEXT, "Average Speed: " + avgSpeed);
     }
 
     @Override
     public void onDistanceChanged(float distance) {
-
+        Log.i(TAG_CONTEXT, "Total Distance: " + distance);
     }
 
     @Override
     public void onTimeChanged(Time time) {
-
+        Log.i(TAG_CONTEXT, "Time: " + time);
     }
 }

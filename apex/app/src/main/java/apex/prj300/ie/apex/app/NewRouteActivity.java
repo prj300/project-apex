@@ -98,7 +98,7 @@ public class NewRouteActivity extends FragmentActivity
     private static String message;
 
     // Desired interval for location updates
-    public static final long UPDATE_INTERVAL_MS = 1000;
+    public static final long UPDATE_INTERVAL_MS = 800;
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
@@ -289,6 +289,9 @@ public class NewRouteActivity extends FragmentActivity
 
         mTime = Time.valueOf(time);
         Log.d(TAG_CONTEXT, "Time: " + mTime);
+
+        // Pass time to StatsFragment
+        mStatsPasser.onTimeChanged(mTime);
 
         return mTime;
 
@@ -512,6 +515,8 @@ public class NewRouteActivity extends FragmentActivity
             (Math.pow(Math.sqrt(mLatitude - lastLat), 2) + Math.pow(Math.sqrt(mLongitude - lastLong), 2));
         }*/
 
+        // TODO: Fix current Speed ~ ENDA
+
         // Avg speed formula
         double i = (double) ((mTotalDistance * 3600000)/1000) / mTimeDifference;
         mAvgSpeed = (float) i;
@@ -520,6 +525,9 @@ public class NewRouteActivity extends FragmentActivity
         mAvgSpeed = Float.valueOf(String.format("%.2f", mAvgSpeed));
 
         Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
+
+        // Pass speed to StatsFragment
+        mStatsPasser.onAvgSpeedChanged(mAvgSpeed);
 
         return mAvgSpeed;
     }
@@ -545,6 +553,9 @@ public class NewRouteActivity extends FragmentActivity
                 Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
             }
         }
+
+        // Pass total distance to MyStatsFragment
+        mStatsPasser.onDistanceChanged(mTotalDistance);
 
         return mTotalDistance;
     }
