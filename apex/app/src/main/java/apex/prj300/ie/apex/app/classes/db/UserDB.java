@@ -6,7 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.google.gson.Gson;
+
 import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.models.Results;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 import java.sql.Time;
@@ -22,7 +25,8 @@ public class UserDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 31;
+    // Needs to be incremented every time modifications are made
+    private static final int DATABASE_VERSION = 33;
     // database name
     private static final String DATABASE_NAME = "userDb";
     // user table name
@@ -104,6 +108,26 @@ public class UserDB extends SQLiteOpenHelper {
     }
 
     /**
+     * Update user's statistics
+     * Called after a new route
+     * is created/cycled.
+     */
+    public void updateUser(int id, float distance, Time time,
+                           float maxSpeed, float avgSpeed) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(KEY_TOTAL_DISTANCE, distance);
+        values.put(KEY_TOTAL_TIME, String.valueOf(time));
+        values.put(KEY_MAX_SPEED, maxSpeed);
+        values.put(KEY_AVG_SPEED, avgSpeed);
+
+        db.update(TABLE_USER, values, "id =" + id, null);
+        db.close();
+    }
+
+
+    /**
      * Get user data from database
      */
     public User getUser() {
@@ -121,8 +145,10 @@ public class UserDB extends SQLiteOpenHelper {
                     cursor.getString(1),
                     Grade.valueOf(cursor.getString(2)),
                     cursor.getFloat(3),
-                    Time.valueOf(cursor.getString(4)),
+                    Long.valueOf(cursor.getString(4)),
                     cursor.getFloat(5), cursor.getFloat(6));
+
+            cursor.close();
         }
 
         db.close();
