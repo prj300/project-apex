@@ -1,23 +1,16 @@
 package apex.prj300.ie.apex.app;
 
 import java.sql.Date;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
 import android.location.Location;
-import android.media.Image;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -26,33 +19,19 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.astuetz.PagerSlidingTabStrip;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import org.apache.http.NameValuePair;
@@ -239,7 +218,7 @@ public class NewRouteActivity extends FragmentActivity
                 // Only do these actions if recording is on
                 if(mRequestingLocationUpdates) {
                     Log.d(TAG_CONTEXT, "Stop recording.");
-                    mTime = getTime();
+                    getTime();
                     stopUpdatesButtonHandler();
                     saveRouteDialog();
                 }
@@ -279,12 +258,13 @@ public class NewRouteActivity extends FragmentActivity
     }
 
     /**
-     * Getting total journey time
+     * Getting total journey time in milliseconds
      */
-    public long getTime() {
+    public void getTime() {
+        // current time
         mEndTime = System.currentTimeMillis();
 
-        mTimeDifference = mEndTime - mStartTime;
+        mTime = mEndTime - mStartTime;
 
         // mTimes.add(mTimeDifference); // logging each time instance
 
@@ -298,8 +278,6 @@ public class NewRouteActivity extends FragmentActivity
 
         // Pass time to StatsFragment
         mStatsPasser.onTimeChanged(mTime);
-
-        return mTime;
 
     }
 
@@ -375,7 +353,7 @@ public class NewRouteActivity extends FragmentActivity
     /**
      * Calculate route's grade
      */
-    private Grade calculateGrade() {
+    private void calculateGrade() {
 
         // For now this is the method for deciding a route's grade
         if(mTotalDistance < 10) {
@@ -390,7 +368,6 @@ public class NewRouteActivity extends FragmentActivity
             routeGrade = Grade.A;
         }
 
-        return routeGrade;
     }
 
     /**
@@ -444,7 +421,14 @@ public class NewRouteActivity extends FragmentActivity
         // close connection
         db.close();
         updateUser();
-        Log.d(TAG_CONTEXT, "Result saved...result ID = " + resultId);
+        Log.d(TAG_CONTEXT, "Result saved");
+        Log.i(TAG_CONTEXT, "Result ID: " + resultId);
+        Log.i(TAG_CONTEXT, "Route ID: " + routeId);
+        Log.i(TAG_CONTEXT, "Distance: " + mTotalDistance);
+        Log.i(TAG_CONTEXT, "Max Speed: " + mMaxSpeed);
+        Log.i(TAG_CONTEXT, "Average Speed: " + mAvgSpeed);
+        Log.i(TAG_CONTEXT, "Time: " + mTime);
+
     }
 
     /**
@@ -535,7 +519,7 @@ public class NewRouteActivity extends FragmentActivity
      * Tracking speed
      * Average, Max and Instantaneous
      */
-    private float getSpeed() {
+    private void getSpeed() {
         // float mCurrentSpeed = Float.NaN;
         /*
         if(!mTimes.isEmpty()) {
@@ -546,7 +530,7 @@ public class NewRouteActivity extends FragmentActivity
         // TODO: Fix current Speed ~ ENDA
 
         // Avg speed formula
-        double i = (double) ((mTotalDistance * 3600000)/1000) / mTimeDifference;
+        double i = (double) ((mTotalDistance * 3600000)/1000) / mTime;
         mAvgSpeed = (float) i;
 
         // Format to two decimal places
@@ -556,14 +540,12 @@ public class NewRouteActivity extends FragmentActivity
 
         // Pass speed to StatsFragment
         mStatsPasser.onAvgSpeedChanged(mAvgSpeed);
-
-        return mAvgSpeed;
     }
 
     /**
      * Track total distance covered
      */
-    public float getDistance() {
+    public void getDistance() {
         if (!mLatLngs.isEmpty()) {
             Location lastLocation = new Location("LastLocation");
             double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
@@ -584,8 +566,6 @@ public class NewRouteActivity extends FragmentActivity
 
         // Pass total distance to MyStatsFragment
         mStatsPasser.onDistanceChanged(mTotalDistance);
-
-        return mTotalDistance;
     }
 
     /**

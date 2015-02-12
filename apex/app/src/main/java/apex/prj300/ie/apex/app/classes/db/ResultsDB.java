@@ -22,7 +22,7 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 7;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
@@ -45,6 +45,7 @@ public class ResultsDB extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_RESULTS_TABLE = "CREATE TABLE " + TABLE_RESULTS + "("
+                + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_DISTANCE + " FLOAT,"
                 + KEY_MAX_SPEED + " FLOAT,"
                 + KEY_AVG_SPEED + " FLOAT,"

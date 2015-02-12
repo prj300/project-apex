@@ -5,24 +5,20 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ListFragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
-import java.sql.Time;
-
 import apex.prj300.ie.apex.app.classes.db.UserDB;
-import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
+import apex.prj300.ie.apex.app.fragments.MyRoutesFragment;
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 import apex.prj300.ie.apex.app.interfaces.SignOutListener;
@@ -30,8 +26,7 @@ import apex.prj300.ie.apex.app.interfaces.SignOutListener;
 
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        HomeFragment.OnFragmentInteractionListener,
-        MyRoutesFragment.OnFragmentInteractionListener{
+        HomeFragment.OnFragmentInteractionListener {
 
     private static final String TAG_CONTEXT = "MainActivity";
     /**
@@ -113,7 +108,7 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
-                fragment = new MyRoutesFragment();
+                MyRoutesFragment myRoutesFragment = new MyRoutesFragment();
                 break;
             case 3:
                 break;
