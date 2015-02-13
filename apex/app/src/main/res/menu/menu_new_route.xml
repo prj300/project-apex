@@ -4,4 +4,8 @@
     tools:context="apex.prj300.ie.apex.app.NewRouteActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/sign_out"
+        android:title="@string/action_sign_out"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom"/>
 </menu>

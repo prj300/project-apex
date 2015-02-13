@@ -13,16 +13,15 @@ public class User {
     public int id;
     public String email;
     public Grade grade;
-    public int experience;
     public float totalDistance;
-    public Time totalTime;
+    public long totalTime;
     public float maxSpeed;
     public float avgSpeed;
 
     public User() { }
 
     public User(int id, String email, Grade grade,
-                float totalDistance, Time totalTime,
+                float totalDistance, long totalTime,
                 float maxSpeed, float avgSpeed) {
         this.id = id; // 0
         this.email = email; // 1
@@ -65,11 +64,11 @@ public class User {
         this.totalDistance = totalDistance;
     }
 
-    public Time getTotalTime() {
+    public long getTotalTime() {
         return totalTime;
     }
 
-    public void setTotalTime(Time totalTime) {
+    public void setTotalTime(long totalTime) {
         this.totalTime = totalTime;
     }
 

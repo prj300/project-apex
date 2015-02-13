@@ -57,9 +57,8 @@ public class LoginActivity extends Activity {
     private String password;
     private static String email;
     private static Grade grade;
-    private static int experience;
     private static float totalDistance;
-    private static Time totalTime;
+    private static long totalTime;
     private static float maxSpeed;
     private static float avgSpeed;
 
@@ -205,17 +204,17 @@ public class LoginActivity extends Activity {
             Log.d(TAG, "Success: " + result);
             // dismiss progress dialog
             mProgressDialog.dismiss();
+            // Login successful
             if(result == 1) {
                 try {
+                    // retrieve values from json response
                     GetJSONNodes(json);
                     Toast.makeText(getApplicationContext(), "Logged in as " + email, Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            } else if(result == -1) {
-                Toast.makeText(getApplicationContext(), "A user with this email already exists", Toast.LENGTH_SHORT).show();
             } else {
-                popToast("Login failed", "short");
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -255,7 +254,7 @@ public class LoginActivity extends Activity {
         id = json.getInt(TAG_ID);
         grade = Grade.valueOf(json.getString(TAG_GRADE));
         totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
-        totalTime = Time.valueOf(json.getString(TAG_TOTAL_TIME));
+        totalTime = Long.valueOf(json.getString(TAG_TOTAL_TIME));
         maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
         avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
 
@@ -272,6 +271,7 @@ public class LoginActivity extends Activity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            // Show Progress Dialog before executing
             mProgressDialog = new ProgressDialog(LoginActivity.this);
             mProgressDialog.setMessage("Creating new user...");
             mProgressDialog.setIndeterminate(false);
@@ -295,6 +295,7 @@ public class LoginActivity extends Activity {
 
                 Log.d("Response: ", json.toString());
 
+                // response indicator from JSON
                 indicator = json.getInt(TAG_SUCCESS);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -307,25 +308,28 @@ public class LoginActivity extends Activity {
             Log.d("Success: ", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
-            if(result == 1) {
+            if (result == 1) {
                 try {
                     GetJSONNodes(json);
-                    popToast("Registration successful", "short");
+                    Toast.makeText(getApplicationContext(), "Registration successful", Toast.LENGTH_LONG).show();
                     Log.i("Registered as ", email);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                popToast("Registration successful", "short");
-            }
-            else if(result == -1){
-                popToast("A user with email " + email + " already exists", "short");
+            } else if (result == -1) {
+                Toast.makeText(getApplicationContext(), "A user with email "
+                        + email + " already exists.", Toast.LENGTH_LONG).show();
+            } else if (result == -3) {
+                Toast.makeText(getApplicationContext(),
+                        "Invalid e-mail format", Toast.LENGTH_LONG).show();
             } else {
-                popToast("Registration failed", "short");
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
             }
-
         }
+
     }
 
+    /*
     // toast alerts
     private void popToast(String message, String length) {
 
@@ -335,4 +339,5 @@ public class LoginActivity extends Activity {
             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
         }
     }
+    */
 }

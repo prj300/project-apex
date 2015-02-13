@@ -44,6 +44,10 @@ public class MyStatsFragment extends Fragment implements PassStatsListener {
     }
 
 
+    /**
+     * Fragment view will be updated when it receives
+     * new data from the parent activity. UI will be updated accordingly.
+     */
     @Override
     public void onCurrentSpeedChanged(float currentSpeed) {
         Log.i(TAG_CONTEXT, "Speed: " + currentSpeed);
@@ -68,7 +72,7 @@ public class MyStatsFragment extends Fragment implements PassStatsListener {
     }
 
     @Override
-    public void onTimeChanged(Time time) {
+    public void onTimeChanged(long time) {
         Log.i(TAG_CONTEXT, "Time: " + time);
     }
 }

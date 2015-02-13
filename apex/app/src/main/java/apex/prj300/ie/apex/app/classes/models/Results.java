@@ -1,23 +1,25 @@
 package apex.prj300.ie.apex.app.classes.models;
 
-import java.util.Date;
+import java.sql.Date;
 
 /**
  * Created by Enda on 26/01/2015.
  */
 public class Results {
 
+    public int resultId;
     public int userId;
     public int routeId;
     public float distance;
     public float maxSpeed;
     public float avgSpeed;
-    public Date time;
+    public long time;
     public Date dateCreated;
 
     public Results() { }
 
-    public Results(int userId, int routeId, float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
+    public Results(int resultId, int userId, int routeId, float distance, float maxSpeed, float avgSpeed, long time, Date dateCreated) {
+        this.resultId = resultId;
         this.userId = userId;
         this.routeId = routeId;
         this.distance = distance;
@@ -27,13 +29,6 @@ public class Results {
         this.dateCreated = dateCreated;
     }
 
-    public Results(float distance, float maxSpeed, float avgSpeed, Date time, Date dateCreated) {
-        this.distance = distance;
-        this.maxSpeed = maxSpeed;
-        this.avgSpeed = avgSpeed;
-        this.time = time;
-        this.dateCreated = dateCreated;
-    }
 
     public int getUserId() {
         return userId;
@@ -75,11 +70,11 @@ public class Results {
         this.avgSpeed = avgSpeed;
     }
 
-    public Date getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(Date time) {
+    public void setTime(long time) {
         this.time = time;
     }
 

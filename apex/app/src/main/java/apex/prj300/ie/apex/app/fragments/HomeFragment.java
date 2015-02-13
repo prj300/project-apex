@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import apex.prj300.ie.apex.app.R;
+import apex.prj300.ie.apex.app.interfaces.SignOutListener;
 
 
 /**
@@ -20,7 +21,7 @@ import apex.prj300.ie.apex.app.R;
  * Use the {@link HomeFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements SignOutListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -92,6 +93,11 @@ public class HomeFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onSignOut() {
+
     }
 
     /**

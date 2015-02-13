@@ -19,6 +19,7 @@ public class Route {
      * Route model
      */
     // nav property
+    public int routeID;
     public int userID;
     // model attributes
     public Grade grade;
@@ -32,14 +33,27 @@ public class Route {
     /**
      * Getter and setter methods
      */
-    public Route(int userID, Grade grade, Terrain terrain, List<Double> latitudes, List<Double> longitudes, Float distance, Date dateCreated) {
+    public Route(int routeID, int userID, Grade grade, Terrain terrain, Float distance, Date dateCreated) {
+        this.routeID = routeID;
         this.userID = userID;
         this.grade = grade;
         this.terrain = terrain;
-        this.latitudes = latitudes;
-        this.longitudes = longitudes;
         this.distance = distance;
         this.dateCreated = dateCreated;
+    }
+
+    public Route(int routeID, List<Double> latitudes, List<Double> longitudes) {
+        this.routeID = routeID;
+        this.latitudes = latitudes;
+        this.longitudes = longitudes;
+    }
+
+    public int getRouteID() {
+        return routeID;
+    }
+
+    public void setRouteID(int routeID) {
+        this.routeID = routeID;
     }
 
     public int getUserID() {
