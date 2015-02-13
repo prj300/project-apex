@@ -97,7 +97,7 @@ public class MainActivity extends Activity
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
-        Fragment fragment = null;
+        Fragment fragment;
         FragmentManager fragmentManager = getFragmentManager();
         switch (position) {
             default:
@@ -108,9 +108,7 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
-                MyRoutesFragment myRoutesFragment = new MyRoutesFragment();
-                break;
-            case 3:
+                fragment = new MyRoutesFragment();
                 break;
         }
         fragmentManager.beginTransaction()

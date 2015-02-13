@@ -72,12 +72,6 @@ public class NewRouteActivity extends FragmentActivity
      */
     // Activity context
     private static final String TAG_CONTEXT = "NewRouteActivity";
-    protected static final String TAG_SUCCESS = "success";
-    private static final String TAG_MESSAGE = "message";
-    private static String TAG_RESULT_ID = "result_id";
-    private static String TAG_ROUTE_ID = "route_id";
-    private static int indicator = 0;
-    private static String message;
 
     // Desired interval for location updates
     public static final long UPDATE_INTERVAL_MS = 800;
@@ -368,6 +362,16 @@ public class NewRouteActivity extends FragmentActivity
             routeGrade = Grade.A;
         }
 
+        isNetworkAvailable(); // check for connection to the internet
+        Log.d(TAG_CONTEXT, "Network availability = " + isConnected);
+        if (isConnected) {
+            new SaveNewRoute().execute();
+        } else {
+            Log.d(TAG_CONTEXT, "No network connection!");
+            Toast.makeText(getApplicationContext(),
+                    "No network connection!", Toast.LENGTH_LONG).show();
+        }
+
     }
 
     /**
@@ -375,6 +379,8 @@ public class NewRouteActivity extends FragmentActivity
      */
     public void saveNewRoute() {
         RouteDB db = new RouteDB(this);
+        // clear previous data in tables
+        db.resetTables();
 
         // getting today's date
         java.util.Date utilDate = new java.util.Date();
@@ -382,10 +388,11 @@ public class NewRouteActivity extends FragmentActivity
         dateCreated = new java.sql.Date(utilDate.getTime());
 
         // build route properties from results
-        Route newRoute = new Route(mId, routeGrade,
-                routeTerrain, routeLats, routeLngs,
-                mTotalDistance, dateCreated);
+        Route newRoute = new Route(routeId, mId, routeGrade,
+                routeTerrain, mTotalDistance, dateCreated);
         db.addRoute(newRoute);
+        // now add lat and long points to separate table
+        db.addLatsLong(routeId, routeLats, routeLngs);
         db.close();
 
         Log.d(TAG_CONTEXT, "Route Saved Locally");
@@ -396,15 +403,6 @@ public class NewRouteActivity extends FragmentActivity
                 + ", Distance: " + mTotalDistance
                 + ", Date Created: " + dateCreated);
 
-        isNetworkAvailable(); // check for connection to the internet
-        Log.d(TAG_CONTEXT, "Network availability = " + isConnected);
-        if (isConnected) {
-            new SaveNewRoute().execute();
-        } else {
-            Log.d(TAG_CONTEXT, "No network connection!");
-            Toast.makeText(getApplicationContext(),
-                    "No network connection!", Toast.LENGTH_LONG).show();
-        }
     }
 
     /**
@@ -666,6 +664,13 @@ public class NewRouteActivity extends FragmentActivity
      */
     private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
 
+        protected static final String TAG_SUCCESS = "success";
+        private final String TAG_MESSAGE = "message";
+        private String TAG_RESULT_ID = "result_id";
+        private String TAG_ROUTE_ID = "route_id";
+        private int indicator = 0;
+        private String message;
+
         // Show a progress Dialog before executing
         @Override
         protected void onPreExecute() {
@@ -721,6 +726,7 @@ public class NewRouteActivity extends FragmentActivity
                 // Go to results activity
                 // Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
                 // startActivity(intent);
+                saveNewRoute();
                 saveResults();
             } else {
                 Log.i(TAG_CONTEXT, "Route not saved!");
