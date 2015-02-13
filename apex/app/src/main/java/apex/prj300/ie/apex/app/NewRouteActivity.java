@@ -72,6 +72,8 @@ import apex.prj300.ie.apex.app.classes.models.Route;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.MyMapFragment;
 import apex.prj300.ie.apex.app.fragments.MyStatsFragment;
+import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
+import apex.prj300.ie.apex.app.interfaces.PassStatsListener;
 
 import static android.view.View.*;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
@@ -80,7 +82,7 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 
 public class NewRouteActivity extends FragmentActivity
         implements ActionBar.TabListener, LocationListener,
-        ConnectionCallbacks, OnConnectionFailedListener{
+        ConnectionCallbacks, OnConnectionFailedListener {
 
     JSONParser jsonParser = new JSONParser();
     Gson gson = new Gson();
@@ -96,7 +98,7 @@ public class NewRouteActivity extends FragmentActivity
     private static String message;
 
     // Desired interval for location updates
-    public static final long UPDATE_INTERVAL_MS = 1000;
+    public static final long UPDATE_INTERVAL_MS = 800;
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
@@ -153,13 +155,10 @@ public class NewRouteActivity extends FragmentActivity
     protected Long mEndTime;
     protected Long mTimeDifference;
 
-
-    // Defining an interface to pass a location to MyMapFragment
-    public interface PassLocationListener {
-        void onPassLocation(Location location);
-    }
-
+    // Declare interfaces for passing information between fragments
     protected PassLocationListener mLocationPasser;
+    protected PassStatsListener mStatsPasser;
+
     protected Boolean mRequestingLocationUpdates;
 
     AppSectionsPagerAdapter mAppSectionsPagerAdapter;
@@ -290,6 +289,9 @@ public class NewRouteActivity extends FragmentActivity
 
         mTime = Time.valueOf(time);
         Log.d(TAG_CONTEXT, "Time: " + mTime);
+
+        // Pass time to StatsFragment
+        mStatsPasser.onTimeChanged(mTime);
 
         return mTime;
 
@@ -513,6 +515,8 @@ public class NewRouteActivity extends FragmentActivity
             (Math.pow(Math.sqrt(mLatitude - lastLat), 2) + Math.pow(Math.sqrt(mLongitude - lastLong), 2));
         }*/
 
+        // TODO: Fix current Speed ~ ENDA
+
         // Avg speed formula
         double i = (double) ((mTotalDistance * 3600000)/1000) / mTimeDifference;
         mAvgSpeed = (float) i;
@@ -521,6 +525,9 @@ public class NewRouteActivity extends FragmentActivity
         mAvgSpeed = Float.valueOf(String.format("%.2f", mAvgSpeed));
 
         Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
+
+        // Pass speed to StatsFragment
+        mStatsPasser.onAvgSpeedChanged(mAvgSpeed);
 
         return mAvgSpeed;
     }
@@ -546,6 +553,9 @@ public class NewRouteActivity extends FragmentActivity
                 Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
             }
         }
+
+        // Pass total distance to MyStatsFragment
+        mStatsPasser.onDistanceChanged(mTotalDistance);
 
         return mTotalDistance;
     }
@@ -750,7 +760,10 @@ public class NewRouteActivity extends FragmentActivity
                     mLocationPasser = mMapFragment;
                     return mMapFragment;
                 case 1:
-                    return new MyStatsFragment();
+                    MyStatsFragment mStatsFragment = new MyStatsFragment();
+                    // Register Stats Passer interface with Stats Fragment
+                    mStatsPasser = mStatsFragment;
+                    return mStatsFragment;
             }
         }
 
