@@ -32,6 +32,14 @@ public class User {
         this.avgSpeed = avgSpeed; // 6
     }
 
+    public User(int id, float totalDistance, long totalTime, float maxSpeed, float avgSpeed) {
+        this.id = id;
+        this.totalDistance = totalDistance;
+        this.totalTime = totalTime;
+        this.maxSpeed = maxSpeed;
+        this.avgSpeed = avgSpeed;
+    }
+
     public int getId() {
         return id;
     }

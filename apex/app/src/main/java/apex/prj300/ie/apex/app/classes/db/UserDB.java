@@ -112,15 +112,14 @@ public class UserDB extends SQLiteOpenHelper {
      * Called after a new route
      * is created/cycled.
      */
-    public void updateUserStats(int id, float distance, long time,
-                           float maxSpeed, float avgSpeed) {
+    public void updateUserStats(int id, User user) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(KEY_TOTAL_DISTANCE, distance);
-        values.put(KEY_TOTAL_TIME, String.valueOf(time));
-        values.put(KEY_MAX_SPEED, maxSpeed);
-        values.put(KEY_AVG_SPEED, avgSpeed);
+        values.put(KEY_TOTAL_DISTANCE, user.getTotalDistance());
+        values.put(KEY_TOTAL_TIME, String.valueOf(user.getTotalTime()));
+        values.put(KEY_MAX_SPEED, user.getMaxSpeed());
+        values.put(KEY_AVG_SPEED, user.getAvgSpeed());
 
         db.update(TABLE_USER, values, "id =" + id, null);
         db.close();
