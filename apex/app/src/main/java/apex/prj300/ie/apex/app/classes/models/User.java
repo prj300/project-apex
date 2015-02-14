@@ -13,28 +13,23 @@ public class User {
     public int id;
     public String email;
     public Grade grade;
-    public int experience;
     public float totalDistance;
-    public Time totalTime;
-    public int totalCalories;
+    public long totalTime;
     public float maxSpeed;
     public float avgSpeed;
 
     public User() { }
 
     public User(int id, String email, Grade grade,
-                int experience, float totalDistance,
-                Time totalTime, int totalCalories,
+                float totalDistance, long totalTime,
                 float maxSpeed, float avgSpeed) {
-        this.id = id;
-        this.email = email;
-        this.grade = grade;
-        this.experience = experience;
-        this.totalDistance = totalDistance;
-        this.totalTime = totalTime;
-        this.totalCalories = totalCalories;
-        this.maxSpeed = maxSpeed;
-        this.avgSpeed = avgSpeed;
+        this.id = id; // 0
+        this.email = email; // 1
+        this.grade = grade; // 2
+        this.totalDistance = totalDistance; // 3
+        this.totalTime = totalTime; // 4
+        this.maxSpeed = maxSpeed; // 5
+        this.avgSpeed = avgSpeed; // 6
     }
 
     public int getId() {
@@ -61,14 +56,6 @@ public class User {
         this.grade = grade;
     }
 
-    public int getExperience() {
-        return experience;
-    }
-
-    public void setExperience(int experience) {
-        this.experience = experience;
-    }
-
     public float getTotalDistance() {
         return totalDistance;
     }
@@ -77,20 +64,12 @@ public class User {
         this.totalDistance = totalDistance;
     }
 
-    public Time getTotalTime() {
+    public long getTotalTime() {
         return totalTime;
     }
 
-    public void setTotalTime(Time totalTime) {
+    public void setTotalTime(long totalTime) {
         this.totalTime = totalTime;
-    }
-
-    public int getTotalCalories() {
-        return totalCalories;
-    }
-
-    public void setTotalCalories(int totalCalories) {
-        this.totalCalories = totalCalories;
     }
 
     public float getMaxSpeed() {

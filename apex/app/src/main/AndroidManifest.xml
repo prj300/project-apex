@@ -18,9 +18,9 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
         <activity
-            android:name=".HomeActivity"
+            android:name=".MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,12 +41,21 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".RecordRouteActivity"
-            android:label="@string/title_activity_record_route"
+            android:name=".NewRouteActivity"
+            android:label="@string/title_activity_new_route"
+            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="apex.prj300.ie.apex.app.HomeActivity" />
+                android:value=".MainActivity" />
+        </activity>
+        <activity
+            android:name=".ResultsActivity"
+            android:label="@string/title_activity_results"
+            android:parentActivityName=".NewRouteActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="apex.prj300.ie.apex.app.NewRouteActivity" />
         </activity>
     </application>
 

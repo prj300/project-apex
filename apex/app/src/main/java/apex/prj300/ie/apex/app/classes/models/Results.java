@@ -1,35 +1,34 @@
 package apex.prj300.ie.apex.app.classes.models;
 
-import java.util.Date;
+import java.sql.Date;
 
 /**
  * Created by Enda on 26/01/2015.
  */
 public class Results {
 
+    public int resultId;
     public int userId;
     public int routeId;
-    public int experience;
     public float distance;
     public float maxSpeed;
     public float avgSpeed;
-    public Date time;
-    public int caloriesLost;
+    public long time;
     public Date dateCreated;
 
     public Results() { }
 
-    public Results(int userId, int routeId, int experience, float distance, float maxSpeed, float avgSpeed, Date time, int caloriesLost, Date dateCreated) {
+    public Results(int resultId, int userId, int routeId, float distance, float maxSpeed, float avgSpeed, long time, Date dateCreated) {
+        this.resultId = resultId;
         this.userId = userId;
         this.routeId = routeId;
-        this.experience = experience;
         this.distance = distance;
         this.maxSpeed = maxSpeed;
         this.avgSpeed = avgSpeed;
         this.time = time;
-        this.caloriesLost = caloriesLost;
         this.dateCreated = dateCreated;
     }
+
 
     public int getUserId() {
         return userId;
@@ -45,14 +44,6 @@ public class Results {
 
     public void setRouteId(int routeId) {
         this.routeId = routeId;
-    }
-
-    public int getExperience() {
-        return experience;
-    }
-
-    public void setExperience(int experience) {
-        this.experience = experience;
     }
 
     public float getDistance() {
@@ -79,20 +70,12 @@ public class Results {
         this.avgSpeed = avgSpeed;
     }
 
-    public Date getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(Date time) {
+    public void setTime(long time) {
         this.time = time;
-    }
-
-    public int getCaloriesLost() {
-        return caloriesLost;
-    }
-
-    public void setCaloriesLost(int caloriesLost) {
-        this.caloriesLost = caloriesLost;
     }
 
     public Date getDateCreated() {

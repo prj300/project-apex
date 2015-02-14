@@ -1,0 +1,51 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_centerHorizontal="true"
+    android:background="@color/apex_blue"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+
+    <!--<fragment
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment" />-->
+
+    <android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:background="@color/apex_black"
+        android:id="@+id/buttons"
+        android:layout_width="fill_parent"
+        android:layout_height="130dip"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true">
+
+        <ImageView
+            android:background="@null"
+            android:id="@+id/btnRecord"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_margin="0dip"
+            android:src="@drawable/button_record" />
+
+        <TextView
+            android:layout_width="30dip"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:background="@null"
+            android:id="@+id/btnStop"
+            android:layout_width="100dip"
+            android:layout_height="100dip"
+            android:layout_margin="4dip"
+            android:src="@drawable/button_stop" />
+
+    </LinearLayout>
+
+</RelativeLayout>

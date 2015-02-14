@@ -1,9 +1,10 @@
-package apex.prj300.ie.apex.app;
+package apex.prj300.ie.apex.app.fragments;
 
 
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Intent;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +20,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
+
+import apex.prj300.ie.apex.app.LoginActivity;
+import apex.prj300.ie.apex.app.R;
+import apex.prj300.ie.apex.app.classes.db.UserDB;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -36,6 +42,7 @@ public class NavigationDrawerFragment extends Fragment {
      * expands it. This shared preference tracks this.
      */
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+    private static final String TAG_CONTEXT = "NavigationDrawer";
 
     /**
      * A pointer to the current callbacks instance (the Activity).
@@ -107,8 +114,7 @@ public class NavigationDrawerFragment extends Fragment {
                         getString(R.string.title_activity_home),
                         getString(R.string.action_start_recording),
                         getString(R.string.action_my_routes),
-                        getString(R.string.action_find_routes),
-                        getString(R.string.action_sign_out)
+                        getString(R.string.action_find_routes)
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
@@ -251,12 +257,27 @@ public class NavigationDrawerFragment extends Fragment {
             return true;
         }
 
-        if (item.getItemId() == R.id.action_example) {
-            Toast.makeText(getActivity(), "Example action.", Toast.LENGTH_SHORT).show();
+        if (item.getItemId() == R.id.sign_out) {
+            signOut();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void signOut() {
+        Log.d(TAG_CONTEXT, "Logged out.");
+
+        // make connection to datbase and clear tables
+        UserDB db = new UserDB(getActivity());
+        db.resetTables();
+        db.close();
+
+        Toast.makeText(getActivity(), "Logged Out.", Toast.LENGTH_SHORT).show();
+        // redirect to login activity
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
+
     }
 
     /**

@@ -2,7 +2,10 @@ package apex.prj300.ie.apex.app;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +27,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.sql.Time;
 
@@ -35,16 +37,14 @@ public class LoginActivity extends Activity {
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
     private JSONObject json;
+    boolean isConnected = false; // handles network state
 
     EditText mEmail;
     EditText mPassword;
     Button mRegister;
     Button mLogin;
 
-    // login url
-    private static final String LOGIN_URL = "http://192.168.0.17/android/apexdb/login_user.php";
-    //register url
-    private static final String REGISTER_URL = "http://192.168.0.17/android/apexdb/create_user.php";
+    private static final String TAG = "LoginActivity";
 
     // indicates success of JSON response
     private int indicator = 0;
@@ -55,14 +55,12 @@ public class LoginActivity extends Activity {
     private User user;
     private int id;
     private String password;
-    private String email;
-    private Grade grade;
-    private int experience;
-    private float totalDistance;
-    private Time totalTime;
-    private int totalCalories;
-    private float maxSpeed;
-    private float avgSpeed;
+    private static String email;
+    private static Grade grade;
+    private static float totalDistance;
+    private static long totalTime;
+    private static float maxSpeed;
+    private static float avgSpeed;
 
     /**
      * JSON Node Responses
@@ -73,7 +71,6 @@ public class LoginActivity extends Activity {
     private static final String TAG_EXPERIENCE = "experience";
     private static final String TAG_TOTAL_TIME = "totaltime";
     private static final String TAG_TOTAL_DISTANCE = "totaldistance";
-    private static final String TAG_TOTAL_CALORIES = "totalcalories";
     private static final String TAG_MAX_SPEED = "maxspeed";
     private static final String TAG_AVG_SPEED = "avgspeed";
 
@@ -97,10 +94,14 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
                 if(mEmail.getText().toString().equals("")
                         || mPassword.getText().toString().equals("")) {
-                    Log.d("Input: ", TAG_MISSING_FIELDS);
-                    popToast(TAG_MISSING_FIELDS, "short");
+                        Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
-                    new LoginUser().execute();
+                    isNetworkAvailable();
+                    if(!isConnected) {
+                         Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
+                    } else {
+                        new LoginUser().execute();
+                    }
                 }
             }
         });
@@ -110,15 +111,31 @@ public class LoginActivity extends Activity {
             public void onClick(View v) {
                 if(mEmail.getText().toString().equals("")
                         || mPassword.getText().toString().equals("")) {
-                    Log.d("Input: ", TAG_MISSING_FIELDS);
-                    popToast(TAG_MISSING_FIELDS, "short");
+                    Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
-                    new RegisterUser().execute();
+                    isNetworkAvailable();
+                    if(!isConnected) {
+                        Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
+                    } else {
+                        new RegisterUser().execute();
+                    }
                 }
             }
         });
     }
 
+    /**
+     * Check to see if there is an internet connection
+     * If none return false
+     */
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        isConnected = networkInfo != null
+                && networkInfo.isConnected()
+                && networkInfo.isAvailable();
+        return isConnected;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -170,9 +187,9 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(LOGIN_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(getString(R.string.login_url), HttpMethod.POST, params);
 
-                Log.d("Response: ", json.toString());
+                Log.d(TAG, "Response: " + json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
 
@@ -184,20 +201,20 @@ public class LoginActivity extends Activity {
 
         // after completing dismiss Progress Dialog
         protected void onPostExecute(Integer result) {
-            Log.d("Success:", result.toString());
+            Log.d(TAG, "Success: " + result);
             // dismiss progress dialog
             mProgressDialog.dismiss();
+            // Login successful
             if(result == 1) {
                 try {
+                    // retrieve values from json response
                     GetJSONNodes(json);
-                    popToast("Logged in as ", email);
+                    Toast.makeText(getApplicationContext(), "Logged in as " + email, Toast.LENGTH_LONG).show();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            } else if(result == -1) {
-                popToast("Username/password incorrect", "short");
             } else {
-                popToast("Login failed", "short");
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -208,8 +225,7 @@ public class LoginActivity extends Activity {
     private void Login() {
         // Instantiate and build a new user
         user = new User(id, email, grade,
-                experience, totalDistance,
-                totalTime, totalCalories,
+                totalDistance, totalTime,
                 maxSpeed, avgSpeed);
 
         // instantiate User Database to store User's details locally
@@ -220,10 +236,10 @@ public class LoginActivity extends Activity {
         db.addUser(user);
 
         // Move to home page
-        Intent intent = new Intent(this, HomeActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
 
-        Log.i("Logged in as ",  email);
+        Log.i(TAG, "Logged in as " +  email);
         finish();
 
         db.close();
@@ -237,10 +253,8 @@ public class LoginActivity extends Activity {
         // registration successful
         id = json.getInt(TAG_ID);
         grade = Grade.valueOf(json.getString(TAG_GRADE));
-        experience = json.getInt(TAG_EXPERIENCE);
         totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
-        totalTime = Time.valueOf(json.getString(TAG_TOTAL_TIME));
-        totalCalories = json.getInt(TAG_TOTAL_CALORIES);
+        totalTime = Long.valueOf(json.getString(TAG_TOTAL_TIME));
         maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
         avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
 
@@ -257,6 +271,7 @@ public class LoginActivity extends Activity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            // Show Progress Dialog before executing
             mProgressDialog = new ProgressDialog(LoginActivity.this);
             mProgressDialog.setMessage("Creating new user...");
             mProgressDialog.setIndeterminate(false);
@@ -276,10 +291,11 @@ public class LoginActivity extends Activity {
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(REGISTER_URL, HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(getString(R.string.register_url), HttpMethod.POST, params);
 
                 Log.d("Response: ", json.toString());
 
+                // response indicator from JSON
                 indicator = json.getInt(TAG_SUCCESS);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -292,25 +308,28 @@ public class LoginActivity extends Activity {
             Log.d("Success: ", result.toString());
             // dismiss progress dialog
             mProgressDialog.dismiss();
-            if(result == 1) {
+            if (result == 1) {
                 try {
                     GetJSONNodes(json);
-                    popToast("Registration successful", "short");
+                    Toast.makeText(getApplicationContext(), "Registration successful", Toast.LENGTH_LONG).show();
                     Log.i("Registered as ", email);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                popToast("Registration successful", "short");
-            }
-            else if(result == -1){
-                popToast("A user with email " + email + " already exists", "short");
+            } else if (result == -1) {
+                Toast.makeText(getApplicationContext(), "A user with email "
+                        + email + " already exists.", Toast.LENGTH_LONG).show();
+            } else if (result == -3) {
+                Toast.makeText(getApplicationContext(),
+                        "Invalid e-mail format", Toast.LENGTH_LONG).show();
             } else {
-                popToast("Registration failed", "short");
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
             }
-
         }
+
     }
 
+    /*
     // toast alerts
     private void popToast(String message, String length) {
 
@@ -320,4 +339,5 @@ public class LoginActivity extends Activity {
             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
         }
     }
+    */
 }

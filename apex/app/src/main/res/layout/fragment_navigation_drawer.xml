@@ -6,4 +6,4 @@
           android:divider="@android:color/transparent"
           android:dividerHeight="0dp"
           android:background="@color/apex_black"
-          tools:context="apex.prj300.ie.apex.app.NavigationDrawerFragment"/>
+          tools:context="apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment"/>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="#9F2200"/>
-    <stroke android:width="50dp" android:color="@color/apex_black" />
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true"
+        android:drawable="@drawable/ic_record" /> <!-- pressed -->
+    <item android:state_focused="true"
+        android:drawable="@drawable/ic_record" /> <!-- focused -->
+    <item android:drawable="@drawable/ic_record" /> <!-- default -->
+</selector>

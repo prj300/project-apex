@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="terrains_array">
+
+        <item>Road</item>
+        <item>Gravel</item>
+        <item>Dirt</item>
+    </string-array>
+</resources>

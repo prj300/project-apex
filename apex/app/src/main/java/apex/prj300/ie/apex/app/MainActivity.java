@@ -5,27 +5,30 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ListFragment;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
-import java.sql.Time;
-
 import apex.prj300.ie.apex.app.classes.db.UserDB;
-import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.models.User;
+import apex.prj300.ie.apex.app.fragments.HomeFragment;
+import apex.prj300.ie.apex.app.fragments.MyRoutesFragment;
+import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
+import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
+import apex.prj300.ie.apex.app.interfaces.SignOutListener;
 
 
-public class HomeActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends Activity
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
+        HomeFragment.OnFragmentInteractionListener {
 
+    private static final String TAG_CONTEXT = "MainActivity";
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -38,26 +41,15 @@ public class HomeActivity extends Activity
 
     // count to check if user is logged in
     private int count;
-    /**
-     * User params
-     */
-    private int id;
-    private String password;
-    private String email;
-    private Grade grade;
-    private int experience;
-    private float totalDistance;
-    private Time totalTime;
-    private int totalCalories;
-    private float maxSpeed;
-    private float avgSpeed;
-    private User user;
+
+    SignOutListener mSignOutListener;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // first check if a user is logged in
         checkLoginStatus();
         // if user exists
         if(count > 0) {
@@ -94,25 +86,33 @@ public class HomeActivity extends Activity
     private void getUser() {
         UserDB db = new UserDB(getApplicationContext());
 
-        user = db.getUser();
+        /*
+      User params
+     */
+        User user = db.getUser();
         Log.i("User: ", user.getEmail());
     }
 
-    private void popToast(String message, String length) {
-
-        if(length.equals("short")) {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-        }
-    }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
+        Fragment fragment;
         FragmentManager fragmentManager = getFragmentManager();
+        switch (position) {
+            default:
+            case 0:
+                fragment = new HomeFragment();
+                break;
+            case 1:
+                fragment = new NewRouteFragment();
+                break;
+            case 2:
+                fragment = new MyRoutesFragment();
+                break;
+        }
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, fragment)
                 .commit();
     }
 
@@ -123,23 +123,19 @@ public class HomeActivity extends Activity
                 break;
             case 2:
                 mTitle = getString(R.string.action_start_recording);
-                // start Map Activity
-                Intent intent = new Intent(getApplicationContext(), RecordRouteActivity.class);
-                startActivity(intent);
                 break;
             case 3:
                 mTitle = getString(R.string.action_my_routes);
                 break;
             case 4:
                 mTitle = getString(R.string.action_find_routes);
-            case 5:
-                mTitle = getString(R.string.action_sign_out);
-                signOut(); // sign out
-                break;
         }
     }
 
     private void signOut() {
+        Log.d(TAG_CONTEXT, "Logged out.");
+
+        // make connection to database and clear tables
         UserDB db = new UserDB(getApplicationContext());
         db.resetTables();
 
@@ -183,49 +179,16 @@ public class HomeActivity extends Activity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if(id == R.id.sign_out) {
+            signOut();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
+    @Override
+    public void onFragmentInteraction(Uri uri) {
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_home, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((HomeActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
     }
 
 }
