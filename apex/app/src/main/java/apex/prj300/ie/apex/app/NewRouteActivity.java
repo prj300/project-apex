@@ -78,6 +78,13 @@ public class NewRouteActivity extends FragmentActivity
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
+    protected static final String TAG_SUCCESS = "success";
+    private final String TAG_MESSAGE = "message";
+    private String TAG_RESULT_ID = "result_id";
+    private String TAG_ROUTE_ID = "route_id";
+    private int indicator = 0;
+    private String message;
+
 
     /**
      * Variables that will be used and changed within the activity lifecycle
@@ -92,12 +99,6 @@ public class NewRouteActivity extends FragmentActivity
     protected static double mLongitude; // current longitude
     // Tracks whether route should be recorded or not
     protected Boolean mRecordRoute;
-
-    /**
-     * User Model properties (as needed)
-     */
-    protected static User mUser = new User();
-    protected static int mId;
 
     /**
      * Route Model Properties
@@ -131,7 +132,6 @@ public class NewRouteActivity extends FragmentActivity
     // Tracks time elapsed
     protected Long mStartTime; // (milliseconds)
     protected Long mEndTime;
-    protected Long mTimeDifference;
 
     // Declare interfaces for passing information between fragments
     protected PassLocationListener mLocationPasser;
@@ -219,8 +219,7 @@ public class NewRouteActivity extends FragmentActivity
             }
 
         });
-        // get ID of current user logged in
-        mId = getUser().getId();
+
         buildGoogleApiClient();
 
     }
@@ -232,7 +231,6 @@ public class NewRouteActivity extends FragmentActivity
         UserDB db = new UserDB(this);
 
         User user = db.getUser();
-        mId = mUser.getId();
         db.close();
 
         return user;
@@ -328,12 +326,15 @@ public class NewRouteActivity extends FragmentActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which){
-                            case 1:
+                            case 0:
                                 routeTerrain = Terrain.Road;
-                            case 2:
+                                break;
+                            case 1:
                                 routeTerrain = Terrain.Gravel;
-                            case 3:
+                                break;
+                            case 2:
                                 routeTerrain = Terrain.Dirt;
+                                break;
                         }
                         Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
                         calculateGrade();
@@ -388,7 +389,7 @@ public class NewRouteActivity extends FragmentActivity
         dateCreated = new java.sql.Date(utilDate.getTime());
 
         // build route properties from results
-        Route newRoute = new Route(routeId, mId, routeGrade,
+        Route newRoute = new Route(routeId, getUser().getId(), routeGrade,
                 routeTerrain, mTotalDistance, dateCreated);
         db.addRoute(newRoute);
         // now add lat and long points to separate table
@@ -397,7 +398,7 @@ public class NewRouteActivity extends FragmentActivity
 
         Log.d(TAG_CONTEXT, "Route Saved Locally");
         Log.i(TAG_CONTEXT, "Time: " + mTime);
-        Log.i(TAG_CONTEXT, "User: " + mId
+        Log.i(TAG_CONTEXT, "User: " + getUser().getId()
                 + ", Route Grade: " + routeGrade
                 + ", Route Terrain: " + routeTerrain
                 + ", Distance: " + mTotalDistance
@@ -412,7 +413,7 @@ public class NewRouteActivity extends FragmentActivity
         // Connection to ResultsDB
         ResultsDB db = new ResultsDB(this);
         // Add results
-        Results newResult = new Results(resultId, mId, routeId,
+        Results newResult = new Results(resultId, getUser().getId(), routeId,
                 mTotalDistance, mMaxSpeed, mAvgSpeed, mTime, dateCreated);
         // Insert new result into database
         db.addResult(newResult);
@@ -436,15 +437,41 @@ public class NewRouteActivity extends FragmentActivity
         // Connection to database
         UserDB db = new UserDB(this);
 
-        float distance = mUser.getTotalDistance() + mTotalDistance;
-        long time = mUser.getTotalTime() + mTime;
-        float maxSpeed = Float.NaN;
-        if(mMaxSpeed > mUser.getMaxSpeed()) {
+        getResultsCount();
+        float distance = getUser().getTotalDistance() + mTotalDistance;
+        long time = getUser().getTotalTime() + mTime;
+        float maxSpeed;
+        if(mMaxSpeed > getUser().getMaxSpeed()) {
             maxSpeed = mMaxSpeed;
         } else {
-            maxSpeed = mUser.getMaxSpeed();
+            maxSpeed = getUser().getMaxSpeed();
         }
 
+        // Update User table with new User stats
+        db.updateUserStats(getUser().getId(), distance, time, maxSpeed, getAverage(mAvgSpeed));
+
+        new UpdateUser().execute();
+
+    }
+
+    /**
+     * Get number of rows in Results Table
+     */
+    private int getResultsCount() {
+        ResultsDB db = new ResultsDB(this);
+        return db.rowCount();
+
+    }
+
+    /**
+     * Calculate new overall average
+     */
+    private float getAverage(float avg) {
+        ResultsDB db = new ResultsDB(this);
+
+        float average = ((db.getAverageSpeed() + avg) / (getResultsCount() + 1));
+
+        return average;
     }
 
     /**
@@ -557,8 +584,8 @@ public class NewRouteActivity extends FragmentActivity
                 // find distance between two neighbouring points
                 // add to total distance
                 mDistance = lastLocation.distanceTo(mLocation); // metres
-                mTotalDistance += mDistance; // total metres
-                Log.i(TAG_CONTEXT, "Distance (m): " + mTotalDistance);
+                mTotalDistance += (mDistance/1000); // total km
+                Log.i(TAG_CONTEXT, "Distance (km): " + mTotalDistance);
             }
         }
 
@@ -664,13 +691,6 @@ public class NewRouteActivity extends FragmentActivity
      */
     private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
 
-        protected static final String TAG_SUCCESS = "success";
-        private final String TAG_MESSAGE = "message";
-        private String TAG_RESULT_ID = "result_id";
-        private String TAG_ROUTE_ID = "route_id";
-        private int indicator = 0;
-        private String message;
-
         // Show a progress Dialog before executing
         @Override
         protected void onPreExecute() {
@@ -688,7 +708,7 @@ public class NewRouteActivity extends FragmentActivity
             try {
                 List<NameValuePair> params = new ArrayList<>();
                 // Route parameters
-                params.add(new BasicNameValuePair("user_id", String.valueOf(mId)));
+                params.add(new BasicNameValuePair("user_id", String.valueOf(getUser().getId())));
                 params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
                 params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
                 params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
@@ -797,5 +817,24 @@ public class NewRouteActivity extends FragmentActivity
             }
         }
 
+    }
+
+    private class UpdateUser extends AsyncTask<Void, Void, Void> {
+
+        // Show a progress Dialog before executing
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
+            mProgressDialog.setMessage("Updating user...");
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(true);
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            return null;
+        }
     }
 }
