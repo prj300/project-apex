@@ -9,9 +9,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.models.Route;
 
 /**
@@ -23,7 +26,7 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 38;
+    private static final int DATABASE_VERSION = 40;
     // database name
     private static final String DATABASE_NAME = "routeDb";
 
@@ -117,7 +120,7 @@ public class RouteDB extends SQLiteOpenHelper {
             values.put(KEY_LAT, latitudes.get(i));
             values.put(KEY_LONG, longitudes.get(i));
         }
-        db.insert(TABLE_ROUTE, null, values);
+        db.insert(TABLE_LATS_LONGS, null, values);
         db.close();
 
     }
@@ -136,6 +139,33 @@ public class RouteDB extends SQLiteOpenHelper {
         cursor.close();
         // return count
         return rowCount;
+    }
+
+    /**
+     * Get all routes from table
+     */
+    public ArrayList<Route> getRoutes() {
+        ArrayList<Route> routes = new ArrayList<>();
+        String select = "SELECT * FROM " + TABLE_ROUTE;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(select, null);
+
+        // Move the cursor to the first row
+        if(cursor.moveToFirst()) {
+            // do the following
+            do {
+                Route route = new Route();
+                route.setRouteID(cursor.getInt(0));
+                route.setGrade(Grade.valueOf(cursor.getString(2)));
+                route.setTerrain(Terrain.valueOf(cursor.getString(3)));
+                route.setDistance(Float.valueOf(cursor.getString(4)));
+                route.setDateCreated(Date.valueOf(cursor.getString(5)));
+
+                routes.add(route);
+            } while (cursor.moveToNext()); // while the cursor has another row to move to
+        }
+
+        return routes;
     }
 
     /**

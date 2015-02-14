@@ -1,10 +1,6 @@
 package apex.prj300.ie.apex.app.classes.models;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
-
-import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
@@ -36,6 +32,14 @@ public class Route {
     public Route(int routeID, int userID, Grade grade, Terrain terrain, Float distance, Date dateCreated) {
         this.routeID = routeID;
         this.userID = userID;
+        this.grade = grade;
+        this.terrain = terrain;
+        this.distance = distance;
+        this.dateCreated = dateCreated;
+    }
+
+    public Route(int routeID, Grade grade, Terrain terrain, Float distance, Date dateCreated) {
+        this.routeID = routeID;
         this.grade = grade;
         this.terrain = terrain;
         this.distance = distance;
@@ -110,6 +114,17 @@ public class Route {
 
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+
+    /**
+     * String override
+     * Can be used to display route information in ListView etc.
+     */
+    @Override
+    public String toString() {
+        return this.getRouteID() + " " + this.getTerrain() + " " + this.getDistance()
+                + " " + this.getGrade() + this.getDateCreated();
     }
 }
 

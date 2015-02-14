@@ -131,7 +131,6 @@ public class NewRouteActivity extends FragmentActivity
     // Tracks time elapsed
     protected Long mStartTime; // (milliseconds)
     protected Long mEndTime;
-    protected Long mTimeDifference;
 
     // Declare interfaces for passing information between fragments
     protected PassLocationListener mLocationPasser;
@@ -328,12 +327,15 @@ public class NewRouteActivity extends FragmentActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which){
-                            case 1:
+                            case 0:
                                 routeTerrain = Terrain.Road;
-                            case 2:
+                                break;
+                            case 1:
                                 routeTerrain = Terrain.Gravel;
-                            case 3:
+                                break;
+                            case 2:
                                 routeTerrain = Terrain.Dirt;
+                                break;
                         }
                         Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
                         calculateGrade();
