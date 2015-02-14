@@ -90,23 +90,10 @@ public class MyRoutesFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_my_routes, container, false);
         mListView = (ListView) rootView.findViewById(R.id.list_my_routes);
 
-        setUpListView();
-
         return rootView;
 
     }
 
-    private void setUpListView() {
-        // get routes from database
-        ArrayList<Route> mRoutes = getRoutes();
-
-        Log.d(TAG_CONTEXT, "Routes added to array: " + getRoutes().size());
-
-        ArrayAdapter<Route> adapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_list_item_1, mRoutes);
-
-        mListView.setAdapter(adapter);
-    }
 
     /**
      * Method opens connection to UserDB
@@ -260,6 +247,12 @@ public class MyRoutesFragment extends Fragment {
      * Dynamically display "My Routes" in a list on this fragment
      */
     private void displayRoutes() {
+        // get routes from database
+        ArrayList<Route> mRoutes = getRoutes();
 
+        ArrayAdapter<Route> adapter = new ArrayAdapter<>(getActivity(),
+                android.R.layout.simple_list_item_1, mRoutes);
+
+        mListView.setAdapter(adapter);
     }
 }

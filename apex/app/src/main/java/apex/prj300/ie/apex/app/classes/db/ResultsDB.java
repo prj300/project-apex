@@ -22,7 +22,7 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
@@ -90,11 +90,13 @@ public class ResultsDB extends SQLiteOpenHelper {
         if(cursor != null) {
             cursor.moveToFirst();
 
-            // add all results to list
-            resultsList.add(new Results(cursor.getInt(0), cursor.getInt(1),
-                    cursor.getInt(3), cursor.getFloat(4),
-                    cursor.getFloat(5), cursor.getFloat(6),
-                    cursor.getLong(7), Date.valueOf(cursor.getString(8))));
+            do {
+                // add all results to list
+                resultsList.add(new Results(cursor.getInt(0), cursor.getInt(1),
+                        cursor.getInt(3), cursor.getFloat(4),
+                        cursor.getFloat(5), cursor.getFloat(6),
+                        cursor.getLong(7), Date.valueOf(cursor.getString(8))));
+            } while (cursor.moveToNext());
 
             cursor.close();
         }
@@ -103,6 +105,21 @@ public class ResultsDB extends SQLiteOpenHelper {
         db.close();
 
         return resultsList;
+    }
+
+    /**
+     * Calculate the average overall speed from the set of results
+     */
+    public float getAverageSpeed() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String select = "SELECT sum(avgSpeed) from " + TABLE_RESULTS;
+
+        Cursor cursor = db.rawQuery(select, null);
+        float avg = Float.NaN;
+        if(cursor.moveToFirst()) {
+            avg = Float.valueOf(cursor.getString(0));
+        }
+        return avg;
     }
 
     /**

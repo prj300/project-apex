@@ -26,7 +26,7 @@ public class UserDB extends SQLiteOpenHelper {
      */
     // database version
     // Needs to be incremented every time modifications are made
-    private static final int DATABASE_VERSION = 33;
+    private static final int DATABASE_VERSION = 34;
     // database name
     private static final String DATABASE_NAME = "userDb";
     // user table name
@@ -112,7 +112,7 @@ public class UserDB extends SQLiteOpenHelper {
      * Called after a new route
      * is created/cycled.
      */
-    public void updateUser(int id, float distance, Time time,
+    public void updateUserStats(int id, float distance, long time,
                            float maxSpeed, float avgSpeed) {
         SQLiteDatabase db = this.getWritableDatabase();
 
