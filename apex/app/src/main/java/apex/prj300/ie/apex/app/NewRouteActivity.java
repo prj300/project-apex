@@ -82,8 +82,6 @@ public class NewRouteActivity extends FragmentActivity
     private final String TAG_MESSAGE = "message";
     private String TAG_RESULT_ID = "result_id";
     private String TAG_ROUTE_ID = "route_id";
-    private int indicator = 0;
-    private String message;
 
 
     /**
@@ -132,6 +130,8 @@ public class NewRouteActivity extends FragmentActivity
     // Tracks time elapsed
     protected Long mStartTime; // (milliseconds)
     protected Long mEndTime;
+    // holds all time instances per location changed
+    protected static ArrayList<Long> mTimes = new ArrayList<>();
 
     // Declare interfaces for passing information between fragments
     protected PassLocationListener mLocationPasser;
@@ -196,6 +196,8 @@ public class NewRouteActivity extends FragmentActivity
         mRequestingLocationUpdates = false;
         mRecordRoute = false;
         mTotalDistance = 0;
+
+        mMaxSpeed = 0;
 
         // Create Listeners for Record/Stop buttons
         mButtonRecord.setOnClickListener(new OnClickListener() {
@@ -265,7 +267,6 @@ public class NewRouteActivity extends FragmentActivity
                 TimeUnit.MILLISECONDS.toMinutes(mTimeDifference) % TimeUnit.HOURS.toMinutes(1),
                 TimeUnit.MILLISECONDS.toSeconds(mTimeDifference) % TimeUnit.MINUTES.toSeconds(1));
                 */
-
         Log.d(TAG_CONTEXT, "Time: " + mTime);
 
         // Pass time to StatsFragment
@@ -292,12 +293,28 @@ public class NewRouteActivity extends FragmentActivity
                 .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        clearStats();
                     }
                 });
         // Crate builder and display
         builder.create();
         builder.show();
+    }
+
+    /**
+     * Clear all stats
+     * Reset
+     */
+    private void clearStats() {
+        mMaxSpeed = 0;
+        mAvgSpeed = 0;
+        mTime = 0;
+        mTimes.clear();
+        mLatLngs.clear();
+        routeLats.clear();
+        routeLngs.clear();
+        line = null;
+        mDistance = 0;
     }
 
     /**
@@ -447,11 +464,17 @@ public class NewRouteActivity extends FragmentActivity
             maxSpeed = getUser().getMaxSpeed();
         }
 
+        User user = new User(getUser().getId(), distance, time, maxSpeed, getAverage(mAvgSpeed));
         // Update User table with new User stats
-        db.updateUserStats(getUser().getId(), distance, time, maxSpeed, getAverage(mAvgSpeed));
+        db.updateUserStats(getUser().getId(), user);
 
-        new UpdateUser().execute();
-
+        // send data to server
+        if(isNetworkAvailable()) {
+            new UpdateUser(getUser().getId(), distance, time, maxSpeed, getAverage(mAvgSpeed)).execute();
+        } else {
+            Log.i(TAG_CONTEXT, "Network unavailable");
+            Toast.makeText(getApplicationContext(), "No network connection", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -469,9 +492,7 @@ public class NewRouteActivity extends FragmentActivity
     private float getAverage(float avg) {
         ResultsDB db = new ResultsDB(this);
 
-        float average = ((db.getAverageSpeed() + avg) / (getResultsCount() + 1));
-
-        return average;
+        return ((db.getAverageSpeed() + avg) / (getResultsCount() + 1));
     }
 
     /**
@@ -545,14 +566,22 @@ public class NewRouteActivity extends FragmentActivity
      * Average, Max and Instantaneous
      */
     private void getSpeed() {
-        // float mCurrentSpeed = Float.NaN;
-        /*
-        if(!mTimes.isEmpty()) {
-            long lastTime = mTimes.get(mTimes.size() -1);
-            (Math.pow(Math.sqrt(mLatitude - lastLat), 2) + Math.pow(Math.sqrt(mLongitude - lastLong), 2));
-        }*/
+        float speed = Float.NaN;
 
-        // TODO: Fix current Speed ~ ENDA
+        // calculate instantaneous speed
+        if(!mTimes.isEmpty() && (!mLatLngs.isEmpty())) {
+            Location lastLocation = new Location("LastLocation");
+            double x = mLatLngs.get(mLatLngs.size() - 1).latitude; // previous latitude point in array
+            double y = mLatLngs.get(mLatLngs.size() - 1).longitude; // previous longitude point in array
+
+            // set previous location parameters
+            lastLocation.setLatitude(x);
+            lastLocation.setLongitude(y);
+
+            // speed = distance / time
+            speed = ((lastLocation.distanceTo(mLocation)) * 3600000/1000) / (mTime - (mTimes.size()-1));
+            Log.d(TAG_CONTEXT, "Current Speed: " + speed);
+        }
 
         // Avg speed formula
         double i = (double) ((mTotalDistance * 3600000)/1000) / mTime;
@@ -564,7 +593,12 @@ public class NewRouteActivity extends FragmentActivity
         Log.i(TAG_CONTEXT, "Avg Speed: " + mAvgSpeed);
 
         // Pass speed to StatsFragment
+        mStatsPasser.onCurrentSpeedChanged(speed);
         mStatsPasser.onAvgSpeedChanged(mAvgSpeed);
+        if(speed > mMaxSpeed) {
+            mMaxSpeed = speed;
+            mStatsPasser.onMaxSpeedChanged(mMaxSpeed);
+        }
     }
 
     /**
@@ -617,6 +651,8 @@ public class NewRouteActivity extends FragmentActivity
         mLocationPasser.onPassLocation(mLocation);
         getDistance();
         getTime();
+        // add current time to times list
+        mTimes.add(System.currentTimeMillis());
         getSpeed();
         saveLocation();
     }
@@ -672,7 +708,7 @@ public class NewRouteActivity extends FragmentActivity
     public void onConnectionSuspended(int i) {
         // Connection to Play Services lost
         // Try to re-connect
-        Log.i(TAG_CONTEXT, "Connection Suspended");
+        Log.d(TAG_CONTEXT, "Connection Suspended");
         mGoogleApiClient.connect();
     }
 
@@ -689,7 +725,10 @@ public class NewRouteActivity extends FragmentActivity
      * AsyncTask
      * Sending route and results to the server
      */
-    private class SaveNewRoute extends AsyncTask<Route, Void, Integer> {
+    private class SaveNewRoute extends AsyncTask<Void, Void, Integer> {
+
+        int indicator;
+        String message;
 
         // Show a progress Dialog before executing
         @Override
@@ -703,7 +742,7 @@ public class NewRouteActivity extends FragmentActivity
         }
 
         @Override
-        protected Integer doInBackground(Route... args) {
+        protected Integer doInBackground(Void... voids) {
 
             try {
                 List<NameValuePair> params = new ArrayList<>();
@@ -819,22 +858,71 @@ public class NewRouteActivity extends FragmentActivity
 
     }
 
-    private class UpdateUser extends AsyncTask<Void, Void, Void> {
+    /**
+     * Update user
+     */
+    private class UpdateUser extends AsyncTask<Void, Integer, Integer> {
 
-        // Show a progress Dialog before executing
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
-            mProgressDialog.setMessage("Updating user...");
-            mProgressDialog.setIndeterminate(false);
-            mProgressDialog.setCancelable(true);
-            mProgressDialog.show();
+        int indicator;
+        String message;
+
+        // variables for constructor
+        int id;
+        float distance;
+        long time;
+        float maxSpeed;
+        float averageSpeed;
+
+        // Constructor
+        public UpdateUser(int id, float distance, long time, float maxSpeed, float averageSpeed) {
+            this.id = id;
+            this.distance = distance;
+            this.time = time;
+            this.maxSpeed = maxSpeed;
+            this.averageSpeed = averageSpeed;
         }
 
+        // int indicator;
+
         @Override
-        protected Void doInBackground(Void... params) {
-            return null;
+        protected Integer doInBackground(Void... params) {
+
+            List<NameValuePair> args = new ArrayList<>();
+            args.add(new BasicNameValuePair("user_id", String.valueOf(id)));
+            args.add(new BasicNameValuePair("distance", String.valueOf(distance)));
+            args.add(new BasicNameValuePair("time", String.valueOf(time)));
+            args.add(new BasicNameValuePair("max_speed", String.valueOf(maxSpeed)));
+            args.add(new BasicNameValuePair("average_speed", String.valueOf(averageSpeed)));
+
+            // send data to server
+            // get JSON response from server
+            JSONObject json = jsonParser.makeHttpRequest(getString(R.string.update_user), HttpMethod.POST, args);
+            Log.d(TAG_CONTEXT, "JSON Parser: " + json);
+
+            try {
+                // success tag indicates level of success from the server
+                indicator = json.getInt("success");
+                message = json.getString("message");
+            } catch (JSONException e) {
+                Log.e(TAG_CONTEXT, "JSONException: " + e.getMessage());
+            }
+            return indicator;
         }
+
+        protected void onPostExecute(Integer result) {
+            Log.d(TAG_CONTEXT, "Success: " + indicator + ", Message: " + message);
+            // dismiss Progress Dialog
+            mProgressDialog.dismiss();
+            // check indicator
+            if(result == 1) {
+                Log.i(TAG_CONTEXT, "Route saved!");
+                // Go to results activity
+                // Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
+                // startActivity(intent);
+            } else {
+                Log.i(TAG_CONTEXT, "User could not be updated");
+            }
+        }
+
     }
 }

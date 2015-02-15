@@ -123,8 +123,8 @@ public class Route {
      */
     @Override
     public String toString() {
-        return this.getRouteID() + " " + this.getTerrain() + " " + this.getDistance()
-                + " " + this.getGrade() + this.getDateCreated();
+        return String.format("Distance: %s, Terrain: %s, Date Created: %s",
+                this.getDistance(), this.getTerrain(), this.getDateCreated());
     }
 }
 
