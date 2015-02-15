@@ -29,6 +29,14 @@ public class Results {
         this.dateCreated = dateCreated;
     }
 
+    public Results(int routeId, float distance, float maxSpeed, float avgSpeed, long time, Date dateCreated) {
+        this.routeId = routeId;
+        this.distance = distance;
+        this.maxSpeed = maxSpeed;
+        this.avgSpeed = avgSpeed;
+        this.time = time;
+        this.dateCreated = dateCreated;
+    }
 
     public int getUserId() {
         return userId;

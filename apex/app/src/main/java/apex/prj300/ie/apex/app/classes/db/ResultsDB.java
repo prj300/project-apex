@@ -22,13 +22,15 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 10;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
     private static final String TABLE_RESULTS = "resultsTbl";
     // columns
     private static final String KEY_ID = "id";
+    private static final String KEY_USER_ID = "userId";
+    private static final String KEY_ROUTE_ID = "routeId";
     private static final String KEY_DISTANCE = "distance";
     private static final String KEY_MAX_SPEED = "maxSpeed";
     private static final String KEY_AVG_SPEED = "avgSpeed";
@@ -46,6 +48,8 @@ public class ResultsDB extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_RESULTS_TABLE = "CREATE TABLE " + TABLE_RESULTS + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
+                + KEY_ROUTE_ID + " INTEGER,"
+                + KEY_USER_ID + " INTEGER,"
                 + KEY_DISTANCE + " FLOAT,"
                 + KEY_MAX_SPEED + " FLOAT,"
                 + KEY_AVG_SPEED + " FLOAT,"
@@ -68,6 +72,8 @@ public class ResultsDB extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_ID, result.getRouteId());
+        values.put(KEY_USER_ID, result.getUserId());
+        values.put(KEY_ROUTE_ID, result.getRouteId());
         values.put(KEY_DISTANCE, result.getDistance());
         values.put(KEY_MAX_SPEED, result.getMaxSpeed());
         values.put(KEY_AVG_SPEED, result.getAvgSpeed());
@@ -78,12 +84,13 @@ public class ResultsDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public ArrayList<Results> getResults() {
+    public Results getResults(int userId, int routeId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<Results> resultsList = new ArrayList<>();
+        Results results = new Results();
 
         // select all results
-        String selectQuery = "SELECT * FROM " + TABLE_RESULTS;
+        String selectQuery = "SELECT * FROM " + TABLE_RESULTS
+                + "where routeId = " + routeId + " userId = " + userId;
 
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -91,11 +98,13 @@ public class ResultsDB extends SQLiteOpenHelper {
             cursor.moveToFirst();
 
             do {
-                // add all results to list
-                resultsList.add(new Results(cursor.getInt(0), cursor.getInt(1),
-                        cursor.getInt(3), cursor.getFloat(4),
-                        cursor.getFloat(5), cursor.getFloat(6),
-                        cursor.getLong(7), Date.valueOf(cursor.getString(8))));
+                // get requested results details
+                results = new Results(cursor.getInt(0),
+                        cursor.getInt(1), cursor.getInt(2),
+                        cursor.getFloat(3), cursor.getFloat(4),
+                        cursor.getFloat(5), cursor.getLong(6),
+                        Date.valueOf(cursor.getString(7)));
+
             } while (cursor.moveToNext());
 
             cursor.close();
@@ -104,7 +113,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         // close connection
         db.close();
 
-        return resultsList;
+        return results;
     }
 
     /**

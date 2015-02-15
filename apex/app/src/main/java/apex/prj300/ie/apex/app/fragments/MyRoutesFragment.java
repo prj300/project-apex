@@ -70,15 +70,15 @@ public class MyRoutesFragment extends Fragment {
         // if a user created a route it will be stored locally
         // but may never have requested their routes from the server before
         /*
-        if(numberOfRoutes() < 2) {
+        if(numberOfRoutes() > 1) {
+            displayRoutes();
+        } else {
             clearTables();
             new GetMyRoutes().execute();
         }
         */
-        if(savedInstanceState == null) {
-            clearTables();
-            new GetMyRoutes().execute();
-        }
+        clearTables();
+        new GetMyRoutes().execute();
 
     }
 
@@ -121,13 +121,13 @@ public class MyRoutesFragment extends Fragment {
     /**
      * Get number of rows in SQLite RouteDB
      */
-    /*
+
     private int numberOfRoutes() {
         RouteDB db = new RouteDB(getActivity());
         // call a row count query from SQLite database
         return db.rowCount(getUser().getId());
     }
-    */
+
 
     /**
      * Get list of routes from database
