@@ -28,7 +28,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.Time;
 
 
 public class LoginActivity extends Activity {
@@ -37,7 +36,6 @@ public class LoginActivity extends Activity {
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
     private JSONObject json;
-    boolean isConnected = false; // handles network state
 
     EditText mEmail;
     EditText mPassword;
@@ -97,7 +95,7 @@ public class LoginActivity extends Activity {
                         Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
                     isNetworkAvailable();
-                    if(!isConnected) {
+                    if(!isNetworkAvailable()) {
                          Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
                     } else {
                         new LoginUser().execute();
@@ -114,7 +112,7 @@ public class LoginActivity extends Activity {
                     Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
                     isNetworkAvailable();
-                    if(!isConnected) {
+                    if(!isNetworkAvailable()) {
                         Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
                     } else {
                         new RegisterUser().execute();
@@ -129,12 +127,16 @@ public class LoginActivity extends Activity {
      * If none return false
      */
     private boolean isNetworkAvailable() {
+        // Create a connectivity manager and
+        // get the service type currently in use (Wi-fi, 3g etc)
         ConnectivityManager cm  = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        // Get network info from the service
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        isConnected = networkInfo != null
+
+        // return true or false based on connection
+        return (networkInfo != null)
                 && networkInfo.isConnected()
                 && networkInfo.isAvailable();
-        return isConnected;
     }
 
     @Override

@@ -45,10 +45,8 @@ public class MyRoutesFragment extends Fragment {
     JSONParser jsonParser = new JSONParser();
 
     private ProgressDialog mProgressDialog;
-    private Boolean isConnected;
 
     private static ListView mListView;
-
 
     /**
      * Static variables
@@ -70,16 +68,22 @@ public class MyRoutesFragment extends Fragment {
         // if a user created a route it will be stored locally
         // but may never have requested their routes from the server before
         /*
-        if(numberOfRoutes() > 1) {
-            displayRoutes();
-        } else {
+        if(numberOfRoutes() < 2) {
             clearTables();
             new GetMyRoutes().execute();
-        }
-        */
-        clearTables();
-        new GetMyRoutes().execute();
 
+        } else {
+            Log.d(TAG_CONTEXT, "Number of routes available: " + numberOfRoutes());
+            displayRoutes();
+        }*/
+        if(isConnected()) {
+            Log.d(TAG_CONTEXT, "Network available.");
+            clearTables();
+            new GetMyRoutes().execute();
+        } else {
+            Log.d(TAG_CONTEXT, "Network unavailable");
+            Toast.makeText(getActivity(), "No network connection!", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -92,6 +96,25 @@ public class MyRoutesFragment extends Fragment {
 
         return rootView;
 
+    }
+
+    /**
+     * Check network connection before
+     * attempting a network request
+     */
+    private boolean isConnected() {
+        // Create a connectivity manager and
+        // get the service type currently in use (Wi-fi, 3g etc)
+        ConnectivityManager cm = (ConnectivityManager)
+                getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        // get network info from the defined service
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+
+        // return a true or false statement based on connection status
+        return (networkInfo != null)
+                && networkInfo.isConnected()
+                && networkInfo.isAvailable();
     }
 
 
@@ -249,6 +272,7 @@ public class MyRoutesFragment extends Fragment {
     private void displayRoutes() {
         // get routes from database
         ArrayList<Route> mRoutes = getRoutes();
+        Log.d(TAG_CONTEXT, "Displaying " + mRoutes.size() + " routes.");
 
         ArrayAdapter<Route> adapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_list_item_1, mRoutes);

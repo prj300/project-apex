@@ -148,9 +148,6 @@ public class NewRouteActivity extends FragmentActivity
     protected ImageView mButtonRecord;
     protected ImageView mButtonStop;
 
-    // boolean to handle network state
-    protected static boolean isConnected;
-
 
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
@@ -329,10 +326,9 @@ public class NewRouteActivity extends FragmentActivity
         NetworkInfo networkInfo = cm.getActiveNetworkInfo();
 
         // return true or false based on connection
-        isConnected = networkInfo != null
+        return (networkInfo != null)
                 && networkInfo.isConnected()
                 && networkInfo.isAvailable();
-        return isConnected;
     }
 
 
@@ -381,8 +377,8 @@ public class NewRouteActivity extends FragmentActivity
         }
 
         isNetworkAvailable(); // check for connection to the internet
-        Log.d(TAG_CONTEXT, "Network availability = " + isConnected);
-        if (isConnected) {
+        Log.d(TAG_CONTEXT, "Network availability = " + isNetworkAvailable());
+        if (isNetworkAvailable()) {
             new SaveNewRoute().execute();
         } else {
             Log.d(TAG_CONTEXT, "No network connection!");
@@ -599,6 +595,7 @@ public class NewRouteActivity extends FragmentActivity
             mMaxSpeed = speed;
             mStatsPasser.onMaxSpeedChanged(mMaxSpeed);
         }
+        Toast.makeText(getApplicationContext(), "Speed: " + speed, Toast.LENGTH_SHORT).show();
     }
 
     /**
