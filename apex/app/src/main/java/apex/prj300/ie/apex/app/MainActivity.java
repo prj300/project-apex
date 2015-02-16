@@ -5,9 +5,7 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.ListFragment;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,15 +16,13 @@ import android.widget.Toast;
 import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
-import apex.prj300.ie.apex.app.fragments.MyRoutesFragment;
+import apex.prj300.ie.apex.app.fragments.MyResultsActivity;
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
-import apex.prj300.ie.apex.app.interfaces.SignOutListener;
 
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        HomeFragment.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
     private static final String TAG_CONTEXT = "MainActivity";
     /**
@@ -41,8 +37,6 @@ public class MainActivity extends Activity
 
     // count to check if user is logged in
     private int count;
-
-    SignOutListener mSignOutListener;
 
 
     @Override
@@ -108,7 +102,7 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
-                fragment = new MyRoutesFragment();
+                fragment = new MyResultsActivity();
                 break;
         }
         fragmentManager.beginTransaction()
@@ -184,11 +178,6 @@ public class MainActivity extends Activity
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 
 }
