@@ -38,14 +38,6 @@ public class Route {
         this.dateCreated = dateCreated;
     }
 
-    public Route(int routeID, Grade grade, Terrain terrain, Float distance, Date dateCreated) {
-        this.routeID = routeID;
-        this.grade = grade;
-        this.terrain = terrain;
-        this.distance = distance;
-        this.dateCreated = dateCreated;
-    }
-
     public Route(int routeID, List<Double> latitudes, List<Double> longitudes) {
         this.routeID = routeID;
         this.latitudes = latitudes;
