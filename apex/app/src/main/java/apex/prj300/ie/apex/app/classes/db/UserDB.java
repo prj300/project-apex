@@ -19,7 +19,7 @@ public class UserDB extends SQLiteOpenHelper {
      */
     // database version
     // Needs to be incremented every time modifications are made
-    private static final int DATABASE_VERSION = 34;
+    private static final int DATABASE_VERSION = 35;
     // database name
     private static final String DATABASE_NAME = "userDb";
     // user table name

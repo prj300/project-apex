@@ -26,7 +26,7 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 40;
+    private static final int DATABASE_VERSION = 41;
     // database name
     private static final String DATABASE_NAME = "routeDb";
 

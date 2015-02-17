@@ -20,7 +20,7 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 14;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
@@ -93,7 +93,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(select, null);
 
         // if there are rows to add
-        if(cursor != null) {
+        if(cursor.getCount() > 0) {
             cursor.moveToFirst();
 
             // add row to array while the cursor
@@ -161,6 +161,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         if(cursor.moveToFirst()) {
             avg = Float.valueOf(cursor.getString(0));
         }
+        cursor.close();
         return avg;
     }
 
@@ -176,6 +177,16 @@ public class ResultsDB extends SQLiteOpenHelper {
         cursor.close();
         // return row count
         return rowCount;
+    }
+
+    /**
+     * Reset tables
+     */
+    public void resetTables() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Delete rows
+        db.delete(TABLE_RESULTS, null, null);
+        db.close();
     }
 
 }

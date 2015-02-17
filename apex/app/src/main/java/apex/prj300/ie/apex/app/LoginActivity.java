@@ -216,7 +216,7 @@ public class LoginActivity extends Activity {
                     e.printStackTrace();
                 }
             } else {
-                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Incorrect email/password", Toast.LENGTH_SHORT).show();
             }
         }
     }

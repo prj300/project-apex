@@ -13,10 +13,12 @@ import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
+import apex.prj300.ie.apex.app.classes.db.ResultsDB;
+import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
-import apex.prj300.ie.apex.app.fragments.MyResultsActivity;
+import apex.prj300.ie.apex.app.fragments.MyResultsFragment;
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 
@@ -102,7 +104,7 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
-                fragment = new MyResultsActivity();
+                fragment = new MyResultsFragment();
                 break;
         }
         fragmentManager.beginTransaction()
@@ -130,8 +132,13 @@ public class MainActivity extends Activity
         Log.d(TAG_CONTEXT, "Logged out.");
 
         // make connection to database and clear tables
-        UserDB db = new UserDB(getApplicationContext());
-        db.resetTables();
+        UserDB userDB = new UserDB(getApplicationContext());
+        userDB.resetTables();
+        ResultsDB resultsDB = new ResultsDB(getApplicationContext());
+        resultsDB.resetTables();
+        RouteDB routeDB = new RouteDB(getApplicationContext());
+        routeDB.resetTables();
+
 
         Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();
         // redirect to login activity

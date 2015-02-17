@@ -8,7 +8,7 @@
     <string name="text_password">********</string>
     <string name="action_register">Register</string>
     <string name="title_activity_home">My Apex</string>
-    <string name="action_my_routes">My Routes</string>
+    <string name="action_my_routes">My Results</string>
     <string name="action_start_recording">Start Recording</string>
     <string name="action_find_routes">Find Route</string>
     <string name="action_sign_out">Sign Out</string>
@@ -30,6 +30,5 @@
     <string name="title_activity_find_route">FindRouteActivity</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="txtHeadingDistance">Distance</string>
-    <string name="get_my_results" />
 
 </resources>

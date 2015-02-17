@@ -1,6 +1,8 @@
 package apex.prj300.ie.apex.app.classes.models;
 
 import java.sql.Date;
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Enda on 26/01/2015.
@@ -21,15 +23,6 @@ public class Result {
     public Result(int resultId, int userId, int routeId, float distance, float maxSpeed, float avgSpeed, long time, Date dateCreated) {
         this.resultId = resultId;
         this.userId = userId;
-        this.routeId = routeId;
-        this.distance = distance;
-        this.maxSpeed = maxSpeed;
-        this.avgSpeed = avgSpeed;
-        this.time = time;
-        this.dateCreated = dateCreated;
-    }
-
-    public Result(int routeId, float distance, float maxSpeed, float avgSpeed, long time, Date dateCreated) {
         this.routeId = routeId;
         this.distance = distance;
         this.maxSpeed = maxSpeed;
@@ -82,6 +75,12 @@ public class Result {
         return time;
     }
 
+    public String timeString() {
+        return String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(time),
+                TimeUnit.MILLISECONDS.toMinutes(time) % TimeUnit.HOURS.toMinutes(1),
+                TimeUnit.MILLISECONDS.toSeconds(time) % TimeUnit.MINUTES.toSeconds(1));
+    }
+
     public void setTime(long time) {
         this.time = time;
     }
@@ -92,5 +91,11 @@ public class Result {
 
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Time: %s, Distance: %s, Average Speed: %s " +
+                "\nDate: %s", timeString(), getDistance(), getAvgSpeed(), getDateCreated());
     }
 }

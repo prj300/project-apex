@@ -1,7 +1,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:background="@color/apex_blue"
-    android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.fragments.MyResultsActivity">
+    android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.fragments.MyResultsFragment">
 
     <ListView
         android:id="@+id/list_my_routes"
