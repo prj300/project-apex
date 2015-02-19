@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--Terrain options-->
     <string-array name="terrains_array">
-
         <item>Road</item>
         <item>Gravel</item>
         <item>Dirt</item>
+    </string-array>
+
+    <!--Find Route options-->
+    <string-array name="route_options_array">
+        <item>Find a Route by Distance</item>
+        <item>Find a Route by Location</item>
+        <item>Find a Route by Difficulty</item>
+        <item>Find a Route by Popularity</item>
     </string-array>
 </resources>

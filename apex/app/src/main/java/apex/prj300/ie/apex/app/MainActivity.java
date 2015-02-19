@@ -17,6 +17,7 @@ import apex.prj300.ie.apex.app.classes.db.ResultsDB;
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
+import apex.prj300.ie.apex.app.fragments.FindRouteFragment;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
 import apex.prj300.ie.apex.app.fragments.MyResultsFragment;
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
@@ -105,6 +106,9 @@ public class MainActivity extends Activity
                 break;
             case 2:
                 fragment = new MyResultsFragment();
+                break;
+            case 3:
+                fragment = new FindRouteFragment();
                 break;
         }
         fragmentManager.beginTransaction()

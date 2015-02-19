@@ -209,31 +209,38 @@ public class MyResultsFragment extends Fragment {
             Log.d("results", results.toString());
             Log.i("number of results", String.valueOf(results.length()));
 
-            // loop through list of JSON routes
-            // Convert/cast and create a new Route from these parameters
-            for(int i=0;i < results.length(); i++) {
-                JSONObject jsonResults = results.getJSONObject(i);
-                int resultId = jsonResults.getInt("result_id");
-                int routeId = jsonResults.getInt("route_id");
-                float distance = Float.valueOf(jsonResults.getString("distance"));
-                float maxSpeed = Float.valueOf(jsonResults.getString("max_speed"));
-                float avgSpeed = Float.valueOf(jsonResults.getString("avg_speed"));
-                long time = jsonResults.getLong("time");
-                Date dateCreated = Date.valueOf(jsonResults.getString("date_created"));
+            // only execute insert if the array has values
+            if(results.length() > 0) {
+                // loop through list of JSON routes
+                // Convert/cast and create a new Route from these parameters
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject jsonResults = results.getJSONObject(i);
+                    int resultId = jsonResults.getInt("result_id");
+                    int routeId = jsonResults.getInt("route_id");
+                    float distance = Float.valueOf(jsonResults.getString("distance"));
+                    float maxSpeed = Float.valueOf(jsonResults.getString("max_speed"));
+                    float avgSpeed = Float.valueOf(jsonResults.getString("avg_speed"));
+                    long time = jsonResults.getLong("time");
+                    Date dateCreated = Date.valueOf(jsonResults.getString("date_created"));
 
-                Result result = new Result(resultId, getUser().getId(), routeId, distance,
-                        maxSpeed, avgSpeed, time, dateCreated);
+                    Result result = new Result(resultId, getUser().getId(), routeId, distance,
+                            maxSpeed, avgSpeed, time, dateCreated);
 
-                // add result to the database
-                db.addResult(result);
+                    // add result to the database
+                    db.addResult(result);
+                }
             }
             Log.d(TAG_CONTEXT, String.valueOf(results.length()) + " routes added to SQLiteDB");
         } catch (JSONException e) {
             Log.e(TAG_CONTEXT, "JSONException: " + e.getMessage());
         }
 
-        // display results
-        displayResults(getResults());
+        if(getResults().size() > 0) {
+            // display results
+            displayResults(getResults());
+        } else {
+            Toast.makeText(getActivity(), "No results available!", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -254,8 +261,8 @@ public class MyResultsFragment extends Fragment {
                 Log.d(TAG_CONTEXT, "Route selected: " + position);
                 Result selectedResult = results.get(position);
                 // Start a fragment with
-                MyResultFragment myResultFragment = new MyResultFragment();
-                getFragmentManager().beginTransaction().replace(R.id.container, myResultFragment).commit();
+                // MyResultFragment myResultFragment = new MyResultFragment();
+                // getFragmentManager().beginTransaction().replace(R.id.container, myResultFragment).commit();
             }
         });
     }
