@@ -66,7 +66,6 @@ public class LoginActivity extends Activity {
     private static final String TAG_SUCCESS = "success";
     private static final String TAG_ID = "id";
     private static final String TAG_GRADE = "grade";
-    private static final String TAG_EXPERIENCE = "experience";
     private static final String TAG_TOTAL_TIME = "totaltime";
     private static final String TAG_TOTAL_DISTANCE = "totaldistance";
     private static final String TAG_MAX_SPEED = "maxspeed";
@@ -191,7 +190,7 @@ public class LoginActivity extends Activity {
                 // get JSON Object
                 json = jsonParser.makeHttpRequest(getString(R.string.login_url), HttpMethod.POST, params);
 
-                Log.d(TAG, "Response: " + json.toString());
+                Log.d("Login", "Response: " + json.toString());
 
                 indicator = json.getInt(TAG_SUCCESS);
 
@@ -295,7 +294,7 @@ public class LoginActivity extends Activity {
                 // get JSON Object
                 json = jsonParser.makeHttpRequest(getString(R.string.register_url), HttpMethod.POST, params);
 
-                Log.d("Response: ", json.toString());
+                Log.d("Register", "Response: " + json.toString());
 
                 // response indicator from JSON
                 indicator = json.getInt(TAG_SUCCESS);
@@ -314,7 +313,7 @@ public class LoginActivity extends Activity {
                 try {
                     GetJSONNodes(json);
                     Toast.makeText(getApplicationContext(), "Registration successful", Toast.LENGTH_LONG).show();
-                    Log.i("Registered as ", email);
+                    Log.i("Register", "Registered as " + email);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

@@ -79,9 +79,6 @@ public class NewRouteActivity extends FragmentActivity
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
     protected static final String TAG_SUCCESS = "success";
-    private final String TAG_MESSAGE = "message";
-    private String TAG_RESULT_ID = "result_id";
-    private String TAG_ROUTE_ID = "route_id";
 
 
     /**
@@ -758,8 +755,11 @@ public class NewRouteActivity extends FragmentActivity
                 Log.d(TAG_CONTEXT, "JSON Parser: " + json);
                 if(json != null) {
                     indicator = json.getInt(TAG_SUCCESS);
+                    String TAG_MESSAGE = "message";
                     message = json.getString(TAG_MESSAGE);
+                    String TAG_RESULT_ID = "result_id";
                     resultId = json.getInt(TAG_RESULT_ID);
+                    String TAG_ROUTE_ID = "route_id";
                     routeId = json.getInt(TAG_ROUTE_ID);
                 }
 
