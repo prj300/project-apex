@@ -244,8 +244,6 @@ public class LoginActivity extends Activity {
         Log.i(TAG, "Logged in as " +  email);
         finish();
 
-        db.close();
-
     }
 
     /**
