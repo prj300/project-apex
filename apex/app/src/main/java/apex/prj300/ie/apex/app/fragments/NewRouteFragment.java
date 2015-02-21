@@ -18,6 +18,9 @@ public class NewRouteFragment extends Fragment {
         // Required empty public constructor
     }
 
+    /**
+     * This fragment is a launchpad to the NewRouteActivity
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

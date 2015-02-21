@@ -5,4 +5,5 @@
     <string name="create_route_url">http://192.168.0.11/android/apexdb/create_route.php</string>
     <string name="get_results">http://192.168.0.11/android/apexdb/get_results.php</string>
     <string name="update_user">http://192.168.0.11/android/apexdb/update_user.php</string>
+    <string name="find_route_by_distance">http://192.168.0.11/android/apexdb/find_route_by_distance.php</string>
 </resources>

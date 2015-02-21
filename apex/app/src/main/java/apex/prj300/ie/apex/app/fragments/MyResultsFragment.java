@@ -145,7 +145,7 @@ public class MyResultsFragment extends Fragment {
             super.onPreExecute();
             // Show Progress Dialog before executing
             mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Downloading results..");
+            mProgressDialog.setMessage("Finding suitable routes..");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();

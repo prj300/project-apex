@@ -277,14 +277,14 @@ public class NewRouteActivity extends FragmentActivity
         // Set main message
         builder.setMessage(R.string.dialog_save_route)
                 // Set up buttons, and what action to take
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.title_yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(TAG_CONTEXT, "Saving new route");
                         chooseTerrainDialog(); // choose a terrain
                     }
                 })
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.title_no, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         clearStats();

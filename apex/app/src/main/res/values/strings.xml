@@ -22,14 +22,16 @@
     <string name="title_map">Map</string>
     <string name="title_statistics">Stats</string>
     <string name="dialog_save_route">Do you wish to save this route?</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="title_yes">Yes</string>
+    <string name="title_no">No</string>
+    <string name="title_ok">OK</string>
+    <string name="title_cancel">Cancel</string>
     <string name="pick_terrain">Pick a terrain</string>
     <string name="title_activity_results">ResultsActivity</string>
     <string name="title_activity_find_route">FindRouteActivity</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="txtHeadingDistance">Distance</string>
     <string name="find_route_by">Find a Route By</string>
-    <string name="enter_distance_title">Distance</string>
+    <string name="enter_distance_title">Choose a distance</string>
 
 </resources>
