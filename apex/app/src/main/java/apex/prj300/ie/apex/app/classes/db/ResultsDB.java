@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import apex.prj300.ie.apex.app.classes.models.Result;
-import apex.prj300.ie.apex.app.classes.models.Results;
 
 /**
  * Created by Enda on 31/01/2015.
@@ -85,9 +84,9 @@ public class ResultsDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public Result getResults(int userId, int routeId) {
+    public ArrayList<Result> getResults(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Result result = new Result();
+        ArrayList<Result> results = new ArrayList<>();
 
         // select all results
         String select = "SELECT * FROM " + TABLE_RESULTS
@@ -102,7 +101,7 @@ public class ResultsDB extends SQLiteOpenHelper {
             // add row to array while the cursor
             // has another line to go to
             do {
-                result = (new Result(cursor.getInt(0),
+                results.add(new Result(cursor.getInt(0),
                         cursor.getInt(1), cursor.getInt(2),
                         cursor.getFloat(3), cursor.getFloat(4),
                         cursor.getFloat(5), cursor.getLong(6),
@@ -113,14 +112,14 @@ public class ResultsDB extends SQLiteOpenHelper {
         }
         db.close();
 
-        return result;
+        return results;
     }
 
 
     /**
      * Get a single result
      */
-    public Result getResult(int resultId) {
+    public Result getResult(int userId, int routeId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Result result = new Result();
 
@@ -135,7 +134,7 @@ public class ResultsDB extends SQLiteOpenHelper {
 
             do {
                 // get requested results details
-                results = new Results(cursor.getInt(0),
+                result = new Result(cursor.getInt(0),
                         cursor.getInt(1), cursor.getInt(2),
                         cursor.getFloat(3), cursor.getFloat(4),
                         cursor.getFloat(5), cursor.getLong(6),
@@ -149,7 +148,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         // close connection
         db.close();
 
-        return results;
+        return result;
     }
 
     /**

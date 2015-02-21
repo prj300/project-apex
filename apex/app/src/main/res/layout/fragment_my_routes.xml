@@ -1,17 +1,10 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:background="@color/apex_blue"
-<<<<<<< HEAD
     android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.fragments.MyRoutesFragment">
-=======
-    android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.fragments.MyResultsFragment">
->>>>>>> fragments
-
     <ListView
         android:id="@+id/list_my_routes"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:drawSelectorOnTop="false"
-        />
-
+        android:drawSelectorOnTop="false"/>
 </FrameLayout>

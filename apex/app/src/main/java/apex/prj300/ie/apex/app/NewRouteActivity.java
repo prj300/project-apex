@@ -46,7 +46,7 @@ import apex.prj300.ie.apex.app.classes.enums.Grade;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
-import apex.prj300.ie.apex.app.classes.models.Results;
+import apex.prj300.ie.apex.app.classes.models.Result;
 import apex.prj300.ie.apex.app.classes.models.Route;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.MyMapFragment;
@@ -423,7 +423,7 @@ public class NewRouteActivity extends FragmentActivity
         // Connection to ResultsDB
         ResultsDB db = new ResultsDB(this);
         // Add results
-        Results newResult = new Results(resultId, getUser().getId(), routeId,
+        Result newResult = new Result(resultId, getUser().getId(), routeId,
                 mTotalDistance, mMaxSpeed, mAvgSpeed, mTime, dateCreated);
         // Insert new result into database
         db.addResult(newResult);

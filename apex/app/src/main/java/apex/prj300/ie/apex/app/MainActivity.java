@@ -21,11 +21,7 @@ import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
 import apex.prj300.ie.apex.app.fragments.FindRouteFragment;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
-<<<<<<< HEAD
-import apex.prj300.ie.apex.app.fragments.MyRoutesFragment;
-=======
 import apex.prj300.ie.apex.app.fragments.MyResultsFragment;
->>>>>>> fragments
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 import apex.prj300.ie.apex.app.interfaces.SignOutListener;
@@ -115,14 +111,10 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
-<<<<<<< HEAD
-                fragment = new MyRoutesFragment();
-=======
                 fragment = new MyResultsFragment();
                 break;
             case 3:
                 fragment = new FindRouteFragment();
->>>>>>> fragments
                 break;
         }
         fragmentManager.beginTransaction()

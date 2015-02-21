@@ -29,10 +29,7 @@
     <string name="title_activity_find_route">FindRouteActivity</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="txtHeadingDistance">Distance</string>
-<<<<<<< HEAD
-=======
     <string name="find_route_by">Find a Route By</string>
     <string name="enter_distance_title">Distance</string>
->>>>>>> fragments
 
 </resources>

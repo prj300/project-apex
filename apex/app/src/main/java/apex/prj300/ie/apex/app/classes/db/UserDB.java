@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.google.gson.Gson;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
-import apex.prj300.ie.apex.app.classes.models.Results;
+import apex.prj300.ie.apex.app.classes.models.Result;
 import apex.prj300.ie.apex.app.classes.models.User;
 
 import java.sql.Time;
