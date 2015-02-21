@@ -7,9 +7,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.List;
 
-import apex.prj300.ie.apex.app.classes.models.Result;
+import apex.prj300.ie.apex.app.classes.models.Results;
 
 /**
  * Created by Enda on 31/01/2015.
@@ -20,7 +22,7 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 10;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
@@ -65,7 +67,7 @@ public class ResultsDB extends SQLiteOpenHelper {
     /**
      * Store results
      */
-    public void addResult(Result result) {
+    public void addResult(Results result) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -82,48 +84,13 @@ public class ResultsDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public ArrayList<Result> getResults(int userId) {
+    public Results getResults(int userId, int routeId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<Result> results = new ArrayList<>();
+        Results results = new Results();
 
         // select all results
-        String select = "SELECT * FROM " + TABLE_RESULTS
-                + " WHERE userId = " + userId;
-
-        Cursor cursor = db.rawQuery(select, null);
-
-        // if there are rows to add
-        if(cursor != null) {
-            cursor.moveToFirst();
-
-            // add row to array while the cursor
-            // has another line to go to
-            do {
-                results.add(new Result(cursor.getInt(0),
-                        cursor.getInt(1), cursor.getInt(2),
-                        cursor.getFloat(3), cursor.getFloat(4),
-                        cursor.getFloat(5), cursor.getLong(6),
-                        Date.valueOf(cursor.getString(7))));
-            } while (cursor.moveToNext());
-
-            cursor.close();
-        }
-        db.close();
-
-        return results;
-    }
-
-
-    /**
-     * Get a single result
-     */
-    public Result getResult(int resultId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Result result = new Result();
-
-        // select result
         String selectQuery = "SELECT * FROM " + TABLE_RESULTS
-                + " where id = " + resultId;
+                + "where routeId = " + routeId + " userId = " + userId;
 
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -132,7 +99,7 @@ public class ResultsDB extends SQLiteOpenHelper {
 
             do {
                 // get requested results details
-                result = new Result(cursor.getInt(0),
+                results = new Results(cursor.getInt(0),
                         cursor.getInt(1), cursor.getInt(2),
                         cursor.getFloat(3), cursor.getFloat(4),
                         cursor.getFloat(5), cursor.getLong(6),
@@ -146,7 +113,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         // close connection
         db.close();
 
-        return result;
+        return results;
     }
 
     /**

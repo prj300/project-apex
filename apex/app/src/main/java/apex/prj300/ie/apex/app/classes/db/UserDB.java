@@ -6,8 +6,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.google.gson.Gson;
+
 import apex.prj300.ie.apex.app.classes.enums.Grade;
+import apex.prj300.ie.apex.app.classes.models.Results;
 import apex.prj300.ie.apex.app.classes.models.User;
+
+import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Enda on 04/01/2015.

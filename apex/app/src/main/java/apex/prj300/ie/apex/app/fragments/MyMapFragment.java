@@ -109,11 +109,11 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
         mLatLngs.add(mLatLng);
 
         // Plot array on map
-        mMap.addPolyline(new PolylineOptions()
-                .addAll(mLatLngs)
-                .width(6f)
-                .color(Color.BLUE)
-                .geodesic(true));
+            mMap.addPolyline(new PolylineOptions()
+                    .addAll(mLatLngs)
+                    .width(6f)
+                    .color(Color.BLUE)
+                    .geodesic(true));
 
     }
 
@@ -122,6 +122,10 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      */
     private void updateCamera(LatLng latLng) {
         CameraUpdate cameraUpdate;
+
+        // Move the camera to specified zoom level and location
+        cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.5f);
+        mMap.animateCamera(cameraUpdate);
 
         // Move the camera to location at whatever zoom
         // level camera is currently at. This only happens
@@ -132,9 +136,5 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
                     mMap.getCameraPosition().zoom);
             mMap.animateCamera(cameraUpdate);
         }
-
-        // Move the camera to specified zoom level and location
-        cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.5f);
-        mMap.animateCamera(cameraUpdate);
     }
 }
