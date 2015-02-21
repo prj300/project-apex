@@ -261,7 +261,7 @@ public class NewRouteActivity extends FragmentActivity
                 TimeUnit.MILLISECONDS.toMinutes(mTimeDifference) % TimeUnit.HOURS.toMinutes(1),
                 TimeUnit.MILLISECONDS.toSeconds(mTimeDifference) % TimeUnit.MINUTES.toSeconds(1));
                 */
-        Log.d(TAG_CONTEXT, "Time: " + mTime);
+        //Log.d(TAG_CONTEXT, "Time: " + mTime);
 
         // Pass time to StatsFragment
         mStatsPasser.onTimeChanged(mTime);
@@ -559,7 +559,7 @@ public class NewRouteActivity extends FragmentActivity
      * Average, Max and Instantaneous
      */
     private void getSpeed() {
-        float speed = Float.NaN;
+        float speed = 0;
 
         // calculate instantaneous speed
         if(!mTimes.isEmpty() && (!mLatLngs.isEmpty())) {
@@ -592,7 +592,7 @@ public class NewRouteActivity extends FragmentActivity
             mMaxSpeed = speed;
             mStatsPasser.onMaxSpeedChanged(mMaxSpeed);
         }
-        Toast.makeText(getApplicationContext(), "Speed: " + speed, Toast.LENGTH_SHORT).show();
+        // Toast.makeText(getApplicationContext(), "Speed: " + speed, Toast.LENGTH_SHORT).show();
     }
 
     /**

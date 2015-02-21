@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.sql.Time;
+import java.util.concurrent.TimeUnit;
 
 import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.interfaces.PassStatsListener;
@@ -73,6 +74,9 @@ public class MyStatsFragment extends Fragment implements PassStatsListener {
 
     @Override
     public void onTimeChanged(long time) {
-        Log.i(TAG_CONTEXT, "Time: " + time);
+        String mTime = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(time),
+                TimeUnit.MILLISECONDS.toMinutes(time) % TimeUnit.HOURS.toMinutes(1),
+                TimeUnit.MILLISECONDS.toSeconds(time) % TimeUnit.MINUTES.toSeconds(1));
+        Log.d(TAG_CONTEXT, "Time: " + mTime);
     }
 }
