@@ -15,10 +15,17 @@ import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
+import apex.prj300.ie.apex.app.classes.db.ResultsDB;
+import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.db.UserDB;
 import apex.prj300.ie.apex.app.classes.models.User;
+import apex.prj300.ie.apex.app.fragments.FindRouteFragment;
 import apex.prj300.ie.apex.app.fragments.HomeFragment;
+<<<<<<< HEAD
 import apex.prj300.ie.apex.app.fragments.MyRoutesFragment;
+=======
+import apex.prj300.ie.apex.app.fragments.MyResultsFragment;
+>>>>>>> fragments
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 import apex.prj300.ie.apex.app.interfaces.SignOutListener;
@@ -108,7 +115,14 @@ public class MainActivity extends Activity
                 fragment = new NewRouteFragment();
                 break;
             case 2:
+<<<<<<< HEAD
                 fragment = new MyRoutesFragment();
+=======
+                fragment = new MyResultsFragment();
+                break;
+            case 3:
+                fragment = new FindRouteFragment();
+>>>>>>> fragments
                 break;
         }
         fragmentManager.beginTransaction()
@@ -136,8 +150,13 @@ public class MainActivity extends Activity
         Log.d(TAG_CONTEXT, "Logged out.");
 
         // make connection to database and clear tables
-        UserDB db = new UserDB(getApplicationContext());
-        db.resetTables();
+        UserDB userDB = new UserDB(getApplicationContext());
+        userDB.resetTables();
+        ResultsDB resultsDB = new ResultsDB(getApplicationContext());
+        resultsDB.resetTables();
+        RouteDB routeDB = new RouteDB(getApplicationContext());
+        routeDB.resetTables();
+
 
         Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();
         // redirect to login activity

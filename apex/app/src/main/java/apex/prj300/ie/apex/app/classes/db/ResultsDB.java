@@ -11,6 +11,7 @@ import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
+import apex.prj300.ie.apex.app.classes.models.Result;
 import apex.prj300.ie.apex.app.classes.models.Results;
 
 /**
@@ -22,7 +23,7 @@ public class ResultsDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 14;
     // database name
     private static final String DATABASE_NAME = "resultsDb";
     // table names
@@ -67,7 +68,7 @@ public class ResultsDB extends SQLiteOpenHelper {
     /**
      * Store results
      */
-    public void addResult(Results result) {
+    public void addResult(Result result) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -84,11 +85,46 @@ public class ResultsDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public Results getResults(int userId, int routeId) {
+    public Result getResults(int userId, int routeId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Results results = new Results();
+        Result result = new Result();
 
         // select all results
+        String select = "SELECT * FROM " + TABLE_RESULTS
+                + " WHERE userId = " + userId;
+
+        Cursor cursor = db.rawQuery(select, null);
+
+        // if there are rows to add
+        if(cursor.getCount() > 0) {
+            cursor.moveToFirst();
+
+            // add row to array while the cursor
+            // has another line to go to
+            do {
+                result = (new Result(cursor.getInt(0),
+                        cursor.getInt(1), cursor.getInt(2),
+                        cursor.getFloat(3), cursor.getFloat(4),
+                        cursor.getFloat(5), cursor.getLong(6),
+                        Date.valueOf(cursor.getString(7))));
+            } while (cursor.moveToNext());
+
+            cursor.close();
+        }
+        db.close();
+
+        return result;
+    }
+
+
+    /**
+     * Get a single result
+     */
+    public Result getResult(int resultId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Result result = new Result();
+
+        // select result
         String selectQuery = "SELECT * FROM " + TABLE_RESULTS
                 + "where routeId = " + routeId + " userId = " + userId;
 
@@ -128,6 +164,7 @@ public class ResultsDB extends SQLiteOpenHelper {
         if(cursor.moveToFirst()) {
             avg = Float.valueOf(cursor.getString(0));
         }
+        cursor.close();
         return avg;
     }
 
@@ -143,6 +180,16 @@ public class ResultsDB extends SQLiteOpenHelper {
         cursor.close();
         // return row count
         return rowCount;
+    }
+
+    /**
+     * Reset tables
+     */
+    public void resetTables() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Delete rows
+        db.delete(TABLE_RESULTS, null, null);
+        db.close();
     }
 
 }

@@ -1,7 +1,16 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="@color/apex_blue"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.FindRouteFragment">
 
-    
-</FrameLayout>
+    <TextView
+        android:textSize="20dp"
+        android:layout_above="@+id/list_find_route"
+        android:text="@string/find_route_by"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp" />
+    <ListView
+        android:id="@+id/list_find_route"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
+</RelativeLayout>
