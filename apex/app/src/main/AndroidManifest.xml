@@ -57,6 +57,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="apex.prj300.ie.apex.app.NewRouteActivity" />
         </activity>
+        <activity
+            android:name=".StartRouteActivity"
+            android:label="@string/title_activity_start_route"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="apex.prj300.ie.apex.app.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

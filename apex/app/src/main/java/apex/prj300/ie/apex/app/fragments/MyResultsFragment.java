@@ -211,8 +211,8 @@ public class MyResultsFragment extends Fragment {
 
             // only execute insert if the array has values
             if(results.length() > 0) {
-                // loop through list of JSON routes
-                // Convert/cast and create a new Route from these parameters
+                // loop through list of JSON results
+                // Convert/cast and create a new result from these parameters
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject jsonResults = results.getJSONObject(i);
                     int resultId = jsonResults.getInt("result_id");

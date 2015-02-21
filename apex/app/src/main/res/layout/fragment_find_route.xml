@@ -4,7 +4,7 @@
     android:layout_height="match_parent" tools:context="apex.prj300.ie.apex.app.FindRouteFragment">
 
     <TextView
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:layout_above="@+id/list_find_route"
         android:text="@string/find_route_by"
         android:layout_width="fill_parent"
