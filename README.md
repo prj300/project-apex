@@ -22,13 +22,14 @@ If this option is selected, the user will be prompted to enter a range in kilome
 
 The app will find and retrieve a selection of routes that match the user's cycling capabilities. The user can enter their skill level (beginner, amateur, leisure, semi-pro, professional).
 
+#### Finding a route by popularity
+
+The app will find a list of the most popular routes within a distance of 100 kilometres of the device location.
+
 #### Notification of pit-stops
 
 Pit-stops are basically an opportunity for businesses along the Wild Atlantic Way to benefit from this app's services. A business can apply for their business to be advertised as a pit-stop on the Wild Atlantic Way. When a user is cycling a route they will be unobtrusively notified of a pit-stop coming up.
 
-#### Finding a route by popularity
-
-The app will find a list of the most popular routes within a distance of 100 kilometres of the device location.
 
 #### Creating and saving a route
 
