@@ -38,7 +38,9 @@ Users can create a new route which (if chosen to be saved) will be published to 
 
 Previously saved routes and results can be retrieved and viewed by the user.
 
+##### Development
 
+Watch as the project develops [here].
 ##### Tech
 
 Project Apex uses a number of open-source platforms and technologies;
@@ -51,4 +53,5 @@ Project Apex uses a number of open-source platforms and technologies;
 [Java]:http://www.java.com/en/
 [Android SDK]:http://developer.android.com/sdk/index.html
 [Android Studio]:http://developer.android.com/tools/studio/index.html
+[here]:https://projectapex2014.wordpress.com/category/project-development/
 
