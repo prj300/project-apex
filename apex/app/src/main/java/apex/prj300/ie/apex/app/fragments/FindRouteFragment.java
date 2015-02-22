@@ -45,6 +45,7 @@ public class FindRouteFragment extends Fragment implements LocationListener {
 
     JSONParser jsonParser = new JSONParser();
     private ProgressDialog mProgressDialog;
+    private static Location mLocation;
 
     private static final String TAG_CONTEXT = "FindRouteFragment";
 
@@ -115,7 +116,10 @@ public class FindRouteFragment extends Fragment implements LocationListener {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Log.d(TAG_CONTEXT, "Distance selected: " + np.getValue());
-                new FindRouteByDistance((float) np.getValue()).execute();
+                new FindRouteByDistance((float) np.getValue(),
+                        mLocation.getLatitude(),
+                        mLocation.getLongitude())
+                        .execute();
 
             }
         });
@@ -129,9 +133,9 @@ public class FindRouteFragment extends Fragment implements LocationListener {
 
     }
 
-
     @Override
     public void onLocationChanged(Location location) {
+        mLocation = location;
     }
 
     /**
@@ -139,9 +143,14 @@ public class FindRouteFragment extends Fragment implements LocationListener {
      */
     private class FindRouteByDistance extends AsyncTask<Void, Void, JSONObject>{
         float picked;
+        double latitude;
+        double longitude
 
-        public FindRouteByDistance(float picked) {
+        public FindRouteByDistance(float picked, double lat, double lon) {
             this.picked = picked;
+            this.lat = latitude;
+            this.lon = longitude;
+
         }
 
         @Override
