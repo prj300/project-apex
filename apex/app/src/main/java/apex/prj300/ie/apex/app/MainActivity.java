@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.ListFragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
+
 
 import apex.prj300.ie.apex.app.classes.db.ResultsDB;
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
@@ -24,12 +24,9 @@ import apex.prj300.ie.apex.app.fragments.HomeFragment;
 import apex.prj300.ie.apex.app.fragments.MyResultsFragment;
 import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
-import apex.prj300.ie.apex.app.interfaces.SignOutListener;
-
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        HomeFragment.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, HomeFragment.OnFragmentInteractionListener {
 
     private static final String TAG_CONTEXT = "MainActivity";
     /**
@@ -44,8 +41,6 @@ public class MainActivity extends Activity
 
     // count to check if user is logged in
     private int count;
-
-    SignOutListener mSignOutListener;
 
 
     @Override
@@ -74,6 +69,7 @@ public class MainActivity extends Activity
             finish();
         }
     }
+
 
     private void checkLoginStatus() {
         // checking if user is already logged in
@@ -201,5 +197,4 @@ public class MainActivity extends Activity
     public void onFragmentInteraction(Uri uri) {
 
     }
-
 }
