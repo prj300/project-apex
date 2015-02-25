@@ -125,22 +125,19 @@ public class RouteDB extends SQLiteOpenHelper {
 
     }
 
-    /**
-     * Count number of rows
-     */
-    public int rowCount(int id) {
-        // select all rows where user id is = id
-        String count = "SELECT * FROM " +
-                TABLE_ROUTE + " WHERE userId = " + id;
+    public ArrayList<LatLng> getLatLngs() {
+        ArrayList<LatLng> latLngs = new ArrayList<>();
+        String select = "SELECT * FROM " + TABLE_LATS_LONGS;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(count, null);
-        int rowCount = cursor.getCount();
-        db.close();
-        cursor.close();
-        // return count
-        return rowCount;
-    }
+        Cursor cursor = db.rawQuery(select, null);
 
+        if(cursor.moveToFirst()) {
+            do {
+                latLngs.add(new LatLng(cursor.getDouble(0), cursor.getDouble(1)));
+            } while (cursor.moveToNext());
+        }
+        return latLngs;
+    }
     /**
      * Get all routes from table
      */
