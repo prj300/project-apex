@@ -741,6 +741,7 @@ public class NewRouteActivity extends FragmentActivity
             try {
                 List<NameValuePair> params = new ArrayList<>();
                 // Route parameters
+                params.add(new BasicNameValuePair("tag", "new"));
                 params.add(new BasicNameValuePair("user_id", String.valueOf(getUser().getId())));
                 params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
                 params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
@@ -751,7 +752,7 @@ public class NewRouteActivity extends FragmentActivity
                 params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
                 params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
 
-                JSONObject json = jsonParser.makeHttpRequest(getString(R.string.create_route_url), HttpMethod.POST, params);
+                JSONObject json = jsonParser.makeHttpRequest(getString(R.string.route), HttpMethod.POST, params);
                 Log.d(TAG_CONTEXT, "JSON Parser: " + json);
                 if(json != null) {
                     indicator = json.getInt(TAG_SUCCESS);
@@ -878,8 +879,6 @@ public class NewRouteActivity extends FragmentActivity
             this.maxSpeed = maxSpeed;
             this.averageSpeed = averageSpeed;
         }
-
-        // int indicator;
 
         @Override
         protected Integer doInBackground(Void... params) {

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -18,11 +19,11 @@ import apex.prj300.ie.apex.app.classes.models.WayPoint;
 public class WildAtlanticWayDB extends SQLiteOpenHelper {
 
     // Database version
-    private static final int DATABASE_VERSION = 6;
+    private static final int DATABASE_VERSION = 10;
     // Database name
     private static final String DATABASE_NAME = "wildAtlanticWayDb";
     // Table names
-    private static final String TABLE_LATS_LONGS = "latsLongsTbl";
+    private static final String TABLE_WAYPOINTS = "wayPointsTbl";
     private static final String TABLE_ROUTE = "routeTbl";
     // Columns
     private static final String KEY_ID = "id";
@@ -39,7 +40,7 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // Create tables
         String CREATE_LATS_LONGS_TABLE = "CREATE TABLE "
-                + TABLE_LATS_LONGS + "("
+                + TABLE_WAYPOINTS + "("
                 + KEY_ID + " INTEGER,"
                 + KEY_LATITUDE + " DOUBLE,"
                 + KEY_LONGITUDE + " DOUBLE" + ")";
@@ -55,27 +56,26 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LATS_LONGS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WAYPOINTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTE);
         // Create tables again
         onCreate(db);
     }
 
     /**
-     * Add route lat longs to table
+     * Add way points to table
      */
-    public void addLatLongs(ArrayList<LatLng> latLongs) {
+    public void addWaypoints(ArrayList<WayPoint> wayPoints) {
         SQLiteDatabase db = this.getWritableDatabase();
-        LatLng latLng;
 
         ContentValues values = new ContentValues();
-        for (int i = 0; i < latLongs.size(); i++) {
-            latLng = latLongs.get(i);
-            values.put(KEY_ID, 1);
-            values.put(KEY_LATITUDE, latLng.latitude);
-            values.put(KEY_LONGITUDE, latLng.longitude);
+        for (int i = 0; i < wayPoints.size(); i++) {
+            values.put(KEY_ID, wayPoints.get(i).getId());
+            values.put(KEY_LATITUDE, wayPoints.get(i).getLatitude());
+            values.put(KEY_LONGITUDE, wayPoints.get(i).getLongitude());
+            db.insert(TABLE_WAYPOINTS, null, values);
         }
-        db.insert(TABLE_LATS_LONGS, null, values);
+        Log.d(DATABASE_NAME, "Rows: " + wayPoints.size());
         db.close();
     }
 
@@ -93,30 +93,32 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
     public void resetTables() {
         SQLiteDatabase db = this.getWritableDatabase();
         // delete rows
-        db.delete(TABLE_LATS_LONGS, null, null);
+        db.delete(TABLE_WAYPOINTS, null, null);
         db.delete(TABLE_ROUTE, null, null);
         db.close();
     }
 
     /**
-     * Retrieve lat long points from the table
+     * Retrieve lat lng points from table
      */
     public ArrayList<LatLng> getLatLngs() {
         ArrayList<LatLng> latLngs = new ArrayList<>();
-        String select = "SELECT latitude, longitude FROM "
-                + TABLE_LATS_LONGS;
+        String select = "SELECT latitude, longitude FROM " + TABLE_WAYPOINTS;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(select, null);
 
         if(cursor.moveToFirst()) {
-            do {
-                latLngs.add(new LatLng
-                        (cursor.getDouble(0), cursor.getDouble(1)));
-            } while (cursor.moveToNext());
+            while(!cursor.isAfterLast()) {
+                LatLng latLng = new LatLng(cursor
+                        .getDouble(cursor.getColumnIndex("latitude")),
+                        cursor.getDouble(cursor.getColumnIndex("longitude")));
+                latLngs.add(latLng);
+                cursor.moveToNext();
+            }
+            cursor.close();
+            Log.d(DATABASE_NAME, "Cursor Count: " + cursor.getCount());
         }
-        cursor.close();
         db.close();
-
         return latLngs;
     }
 

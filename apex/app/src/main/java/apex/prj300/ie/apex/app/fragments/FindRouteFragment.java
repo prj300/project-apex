@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import apex.prj300.ie.apex.app.NewRouteActivity;
 import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.StartRouteActivity;
 import apex.prj300.ie.apex.app.classes.db.RouteDB;
@@ -258,7 +259,7 @@ public class FindRouteFragment extends Fragment
 
             // make HTTP request and get response
             return jsonParser.makeHttpRequest(getString(
-                    R.string.index), HttpMethod.POST, args);
+                    R.string.route), HttpMethod.POST, args);
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -269,13 +270,8 @@ public class FindRouteFragment extends Fragment
         protected void onPostExecute(JSONObject json) {
             mProgressDialog.dismiss();
             if(json != null) {
-                try {
-                    JSONObject route = json.getJSONObject("route");
-                    saveRoute(route);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
+                Log.d(TAG_CONTEXT, "Response: " + json);
+                saveRoute(json);
             } else {
                 Toast.makeText(getActivity(), "Could not connect to server.", Toast.LENGTH_LONG).show();
             }
@@ -285,28 +281,27 @@ public class FindRouteFragment extends Fragment
     /**
      * Save routes
      */
-    private void saveRoute(JSONObject route) {
+    private void saveRoute(JSONObject json) {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
-        Log.d("WIldAtlanticWayDb", "Tables Cleared");
-        ArrayList<LatLng> latLngs = new ArrayList<>();
+        Log.d("WildAtlanticWayDb", "Tables Cleared");
+        ArrayList<WayPoint> wayPoints = new ArrayList<>();
 
         try {
-            // get JSON arrays from JSON route object
-            JSONArray jsonLats = route.getJSONArray("lats");
-            JSONArray jsonLongs = route.getJSONArray("longs");
-            Log.d("JSON", "Lats: " + jsonLats);
-            Log.d("JSON", "Longs:" + jsonLongs);
-
+            // get JSON array from JSON route object
+            JSONArray route = json.getJSONArray("route");
             // loop through the arrays and add the lat longs into a way point array
-            for(int i=0;i < jsonLats.length() && i < jsonLongs.length();i++) {
-                latLngs.add(new LatLng(jsonLats.getDouble(i), jsonLongs.getDouble(i)));
+            for(int i=0;i < route.length();i++) {
+                int id = route.getJSONObject(i).getInt("id");
+                double lat = route.getJSONObject(i).getDouble("lat");
+                double lng = route.getJSONObject(i).getDouble("lng");
+                wayPoints.add(new WayPoint(id, lat, lng));
             }
             // clear any previous data from the table
             db.resetTables();
             // add route to SQLite database
-            db.addLatLongs(latLngs);
-            Log.d("Route", "Route Size: " + db.getLatLngs().size());
-            startActivity(new Intent(getActivity(), StartRouteActivity.class));
+            db.addWaypoints(wayPoints);
+            // Log.d("Route", "Route Size: " + wayPoints.size());
+            startActivity(new Intent(getActivity(), NewRouteActivity.class));
         } catch (JSONException e) {
             e.printStackTrace();
         }
