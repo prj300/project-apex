@@ -59,7 +59,7 @@ import static com.google.android.gms.common.api.GoogleApiClient.*;
 import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 
 
-public class NewRouteActivity extends FragmentActivity
+public class StartRouteActivity extends FragmentActivity
         implements ActionBar.TabListener, LocationListener,
         ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -273,7 +273,7 @@ public class NewRouteActivity extends FragmentActivity
      */
     public void saveRouteDialog() {
         // Instantiate an AlertDialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(StartRouteActivity.this);
         // Set main message
         builder.setMessage(R.string.dialog_save_route)
                 // Set up buttons, and what action to take
@@ -330,7 +330,7 @@ public class NewRouteActivity extends FragmentActivity
 
 
     public void chooseTerrainDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(StartRouteActivity.this);
         builder.setTitle(R.string.pick_terrain)
                 .setItems(R.array.terrains_array, new DialogInterface.OnClickListener() {
                     @Override
@@ -728,7 +728,7 @@ public class NewRouteActivity extends FragmentActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
+            mProgressDialog = new ProgressDialog(StartRouteActivity.this);
             mProgressDialog.setMessage("Saving new route...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);

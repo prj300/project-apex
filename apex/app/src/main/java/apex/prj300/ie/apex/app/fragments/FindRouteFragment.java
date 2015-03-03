@@ -6,7 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -28,7 +27,6 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -39,10 +37,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import apex.prj300.ie.apex.app.NewRouteActivity;
-import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.StartRouteActivity;
-import apex.prj300.ie.apex.app.classes.db.RouteDB;
+import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
@@ -300,8 +296,9 @@ public class FindRouteFragment extends Fragment
             db.resetTables();
             // add route to SQLite database
             db.addWaypoints(wayPoints);
+            db.addRoute(Float.valueOf(json.getString("distance")));
             // Log.d("Route", "Route Size: " + wayPoints.size());
-            startActivity(new Intent(getActivity(), NewRouteActivity.class));
+            startActivity(new Intent(getActivity(), StartRouteActivity.class));
         } catch (JSONException e) {
             e.printStackTrace();
         }

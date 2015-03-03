@@ -9,26 +9,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 
 import apex.prj300.ie.apex.app.R;
-import apex.prj300.ie.apex.app.classes.db.RouteDB;
 import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
-
-import static apex.prj300.ie.apex.app.NewRouteActivity.*;
 
 
 /**
@@ -84,8 +78,8 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      * Set up map at start
      */
     private void setUpMap() {
-        mMap.setMyLocationEnabled(true);
         mMap = fragment.getMap();
+        mMap.setMyLocationEnabled(true);
 
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
         ArrayList<LatLng> latLngs = db.getLatLngs();
