@@ -9,24 +9,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 
 import apex.prj300.ie.apex.app.R;
-import apex.prj300.ie.apex.app.classes.db.RouteDB;
+import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
-
-import static apex.prj300.ie.apex.app.NewRouteActivity.*;
 
 
 /**
@@ -74,11 +70,42 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     public void onResume() {
         super.onResume();
         if(mMap == null) {
-            // Google Map = fragment's Map
-            mMap = fragment.getMap();
-            mMap.setMyLocationEnabled(true);
-            // mMap.getMyLocation(); returns null
+            setUpMap();
         }
+    }
+
+    /**
+     * Set up map at start
+     */
+    private void setUpMap() {
+        mMap = fragment.getMap();
+        mMap.setMyLocationEnabled(true);
+
+        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        ArrayList<LatLng> latLngs = db.getLatLngs();
+
+        // Move the camera to specified zoom level and location
+        CameraUpdate cameraUpdate = CameraUpdateFactory
+                .newLatLngZoom(latLngs.get(0), 12f);
+        mMap.moveCamera(cameraUpdate);
+
+        // Plot array on map
+        mMap.addPolyline(new PolylineOptions()
+                .addAll(latLngs)
+                .width(10f)
+                .color(Color.rgb(75, 188, 232))
+                .geodesic(true));
+
+        // Start point marker
+        mMap.addMarker(new MarkerOptions()
+                .position(latLngs.get(0))
+                .title("Start"));
+
+        // End point marker
+        mMap.addMarker(new MarkerOptions()
+                .position(latLngs.get(latLngs.size()-1))
+                .title("Finish"));
+
     }
 
 
@@ -113,7 +140,7 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
             mMap.addPolyline(new PolylineOptions()
                     .addAll(mLatLngs)
                     .width(6f)
-                    .color(Color.BLUE)
+                    .color(Color.RED)
                     .geodesic(true));
 
     }
@@ -123,10 +150,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      */
     private void updateCamera(LatLng latLng) {
         CameraUpdate cameraUpdate;
-
-        // Move the camera to specified zoom level and location
-        cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 16.5f);
-        mMap.animateCamera(cameraUpdate);
 
         // Move the camera to location at whatever zoom
         // level camera is currently at. This only happens

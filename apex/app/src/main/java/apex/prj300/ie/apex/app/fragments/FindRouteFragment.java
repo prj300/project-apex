@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -36,11 +37,12 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.StartRouteActivity;
-import apex.prj300.ie.apex.app.classes.db.RouteDB;
+import apex.prj300.ie.apex.app.R;
+import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
+import apex.prj300.ie.apex.app.classes.models.WayPoint;
 
 import static com.google.android.gms.common.api.GoogleApiClient.*;
 import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -90,7 +92,12 @@ public class FindRouteFragment extends Fragment
                 switch (position) {
                     case 0:
                         if(isConnected()) {
-                            findRouteByDistance();
+                            if(locationEnabled()) {
+                                findRouteByDistance();
+                            } else {
+                                Toast.makeText(getActivity(),
+                                        "Turn on location.", Toast.LENGTH_LONG).show();
+                            }
                         } else {
                             Toast.makeText(getActivity(), "No network connection!",
                                     Toast.LENGTH_LONG).show();
@@ -178,6 +185,12 @@ public class FindRouteFragment extends Fragment
                 .build();
     }
 
+    private boolean locationEnabled() {
+        LocationManager lm = (LocationManager) getActivity()
+                .getSystemService(Context.LOCATION_SERVICE);
+        return lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
     /**
      * Get the user's last known location
      * Accuracy not required
@@ -242,7 +255,7 @@ public class FindRouteFragment extends Fragment
 
             // make HTTP request and get response
             return jsonParser.makeHttpRequest(getString(
-                    R.string.index), HttpMethod.POST, args);
+                    R.string.route), HttpMethod.POST, args);
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -254,13 +267,7 @@ public class FindRouteFragment extends Fragment
             mProgressDialog.dismiss();
             if(json != null) {
                 Log.d(TAG_CONTEXT, "Response: " + json);
-                try {
-                    JSONObject route = json.getJSONObject("route");
-                    saveRoute(route);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
+                saveRoute(json);
             } else {
                 Toast.makeText(getActivity(), "Could not connect to server.", Toast.LENGTH_LONG).show();
             }
@@ -270,36 +277,32 @@ public class FindRouteFragment extends Fragment
     /**
      * Save routes
      */
-    private void saveRoute(JSONObject route) {
-        RouteDB db = new RouteDB(getActivity());
+    private void saveRoute(JSONObject json) {
+        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        Log.d("WildAtlanticWayDb", "Tables Cleared");
+        ArrayList<WayPoint> wayPoints = new ArrayList<>();
 
         try {
-            JSONArray jsonLats = route.getJSONArray("lats");
-            JSONArray jsonLongs = route.getJSONArray("longs");
-            Log.d("Length: ", String.valueOf(route.length() ));
-
-            Log.d("distance", String.valueOf(route.getString("distance")));
-            ArrayList<Double> lats = new ArrayList<>();
-            ArrayList<Double> longs = new ArrayList<>();
-
-            // Only attempt to save routes if there are any
-            if(jsonLats.length() > 0 && (jsonLongs.length() > 0)) {
-                // clear previous routes
-                db.resetTables();
-                // loop through list of JSON routes
-                // Convert/cast and create a new Route from these parameters
-                for(int i=0; (i < jsonLats.length()) && i < jsonLongs.length();i++) {
-                    double lat = jsonLats.getDouble(i);
-                    double lon = jsonLongs.getDouble(i);
-                    lats.add(lat);
-                    longs.add(lon);
-                }
-                db.addLatsLong(1, lats, longs);
-                startActivity(new Intent(getActivity(), StartRouteActivity.class));
+            // get JSON array from JSON route object
+            JSONArray route = json.getJSONArray("route");
+            // loop through the arrays and add the lat longs into a way point array
+            for(int i=0;i < route.length();i++) {
+                int id = route.getJSONObject(i).getInt("id");
+                double lat = route.getJSONObject(i).getDouble("lat");
+                double lng = route.getJSONObject(i).getDouble("lng");
+                wayPoints.add(new WayPoint(id, lat, lng));
             }
+            // clear any previous data from the table
+            db.resetTables();
+            // add route to SQLite database
+            db.addWaypoints(wayPoints);
+            db.addRoute(Float.valueOf(json.getString("distance")));
+            // Log.d("Route", "Route Size: " + wayPoints.size());
+            startActivity(new Intent(getActivity(), StartRouteActivity.class));
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
     }
+
 }

@@ -26,7 +26,7 @@ public class RouteDB extends SQLiteOpenHelper {
      * Static variables
      */
     // database version
-    private static final int DATABASE_VERSION = 41;
+    private static final int DATABASE_VERSION = 42;
     // database name
     private static final String DATABASE_NAME = "routeDb";
 
@@ -136,6 +136,9 @@ public class RouteDB extends SQLiteOpenHelper {
                 latLngs.add(new LatLng(cursor.getDouble(0), cursor.getDouble(1)));
             } while (cursor.moveToNext());
         }
+        cursor.close();
+        db.close();
+
         return latLngs;
     }
     /**
@@ -161,6 +164,8 @@ public class RouteDB extends SQLiteOpenHelper {
                 routes.add(route);
             } while (cursor.moveToNext()); // while the cursor has another row to move to
         }
+        cursor.close();
+        db.close();
 
         return routes;
     }

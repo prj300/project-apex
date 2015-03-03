@@ -106,15 +106,14 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+        mDrawerListView.setAdapter(new ArrayAdapter<>(
                 getActionBar().getThemedContext(),
                 android.R.layout.simple_list_item_activated_1,
                 android.R.id.text1,
                 new String[]{
                         getString(R.string.title_activity_home),
-                        getString(R.string.action_start_recording),
+                        getString(R.string.action_find_routes),
                         getString(R.string.action_my_routes),
-                        getString(R.string.action_find_routes)
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
@@ -268,7 +267,7 @@ public class NavigationDrawerFragment extends Fragment {
     private void signOut() {
         Log.d(TAG_CONTEXT, "Logged out.");
 
-        // make connection to datbase and clear tables
+        // make connection to database and clear tables
         UserDB db = new UserDB(getActivity());
         db.resetTables();
         db.close();
