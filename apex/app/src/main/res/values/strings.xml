@@ -34,5 +34,7 @@
     <string name="find_route_by">Find a Route By</string>
     <string name="enter_distance_title">Choose a distance</string>
     <string name="title_activity_start_route">StartRouteActivity</string>
+    <string name="text_distance_heading">DISTANCE</string>
+    <string name="text_distance_time">TIME</string>
 
 </resources>

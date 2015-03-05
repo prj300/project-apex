@@ -80,14 +80,6 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
     }
 
     /**
-     * Add attributes of route to separate table
-     */
-    public void addRoute(float distance) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-    }
-
-    /**
      * Delete any previous route in database
      */
     public void resetTables() {
@@ -107,12 +99,13 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(select, null);
 
+        // while the cursor has next line to move to do this
         if(cursor.moveToFirst()) {
             while(!cursor.isAfterLast()) {
                 LatLng latLng = new LatLng(cursor
                         .getDouble(cursor.getColumnIndex("latitude")),
                         cursor.getDouble(cursor.getColumnIndex("longitude")));
-                latLngs.add(latLng);
+                latLngs.add(latLng); // add new lat long to arraylist
                 cursor.moveToNext();
             }
             cursor.close();

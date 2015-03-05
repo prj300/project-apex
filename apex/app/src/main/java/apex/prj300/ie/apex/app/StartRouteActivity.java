@@ -74,7 +74,7 @@ public class StartRouteActivity extends FragmentActivity
     private static final String TAG_CONTEXT = "NewRouteActivity";
 
     // Desired interval for location updates
-    public static final long UPDATE_INTERVAL_MS = 800;
+    public static final long UPDATE_INTERVAL_MS = 2500;
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
@@ -101,8 +101,8 @@ public class StartRouteActivity extends FragmentActivity
     protected static int routeId;
     protected static Grade routeGrade;
     protected static Terrain routeTerrain;
-    protected List<Double> routeLats = new ArrayList<>();
-    protected List<Double> routeLngs = new ArrayList<>();
+    protected static List<Double> routeLats = new ArrayList<>();
+    protected static List<Double> routeLngs = new ArrayList<>();
     protected Date dateCreated;
 
     /**
@@ -348,7 +348,7 @@ public class StartRouteActivity extends FragmentActivity
                         }
                         Log.i(TAG_CONTEXT, "Terrain selected - " + routeTerrain);
                         calculateGrade();
-                        saveNewRoute();
+                        // saveNewRoute();
                     }
                 });
         builder.create();
@@ -419,7 +419,7 @@ public class StartRouteActivity extends FragmentActivity
     /**
      * Saving results
      */
-    public void saveResults() {
+    public void saveResults(int routeId) {
         // Connection to ResultsDB
         ResultsDB db = new ResultsDB(this);
         // Add results
@@ -484,7 +484,6 @@ public class StartRouteActivity extends FragmentActivity
      */
     private float getAverage(float avg) {
         ResultsDB db = new ResultsDB(this);
-
         return ((db.getAverageSpeed() + avg) / (getResultsCount() + 1));
     }
 
@@ -719,10 +718,9 @@ public class StartRouteActivity extends FragmentActivity
      * AsyncTask
      * Sending route and results to the server
      */
-    private class SaveNewRoute extends AsyncTask<Void, Void, Integer> {
+    private class SaveNewRoute extends AsyncTask<Void, Void, JSONObject> {
 
-        int indicator;
-        String message;
+        JSONObject json;
 
         // Show a progress Dialog before executing
         @Override
@@ -736,58 +734,39 @@ public class StartRouteActivity extends FragmentActivity
         }
 
         @Override
-        protected Integer doInBackground(Void... voids) {
+        protected JSONObject doInBackground(Void... voids) {
 
-            try {
-                List<NameValuePair> params = new ArrayList<>();
-                // Route parameters
-                params.add(new BasicNameValuePair("tag", "new"));
-                params.add(new BasicNameValuePair("user_id", String.valueOf(getUser().getId())));
-                params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
-                params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
-                params.add(new BasicNameValuePair("latitudes", gson.toJson(routeLats)));
-                params.add(new BasicNameValuePair("longitudes", gson.toJson(routeLngs)));
-                params.add(new BasicNameValuePair("distance", String.valueOf(mTotalDistance)));
-                params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
-                params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
-                params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
+            List<NameValuePair> params = new ArrayList<>();
+            // Route parameters
+            params.add(new BasicNameValuePair("tag", "new"));
+            params.add(new BasicNameValuePair("user_id", String.valueOf(getUser().getId())));
+            params.add(new BasicNameValuePair("grade", String.valueOf(routeGrade)));
+            params.add(new BasicNameValuePair("terrain", String.valueOf(routeTerrain)));
+            params.add(new BasicNameValuePair("latitudes", String.valueOf(routeLats)));
+            params.add(new BasicNameValuePair("longitudes", String.valueOf(routeLngs)));
+            params.add(new BasicNameValuePair("distance", String.valueOf(mTotalDistance)));
+            params.add(new BasicNameValuePair("max_speed", String.valueOf(mMaxSpeed)));
+            params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
+            params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
 
-                JSONObject json = jsonParser.makeHttpRequest(getString(R.string.route), HttpMethod.POST, params);
-                Log.d(TAG_CONTEXT, "JSON Parser: " + json);
-                if(json != null) {
-                    indicator = json.getInt(TAG_SUCCESS);
-                    String TAG_MESSAGE = "message";
-                    message = json.getString(TAG_MESSAGE);
-                    String TAG_RESULT_ID = "result_id";
-                    resultId = json.getInt(TAG_RESULT_ID);
-                    String TAG_ROUTE_ID = "route_id";
-                    routeId = json.getInt(TAG_ROUTE_ID);
-                }
+            json = jsonParser.makeHttpRequest(getString(R.string.route_controller), HttpMethod.POST, params);
+            Log.d(TAG_CONTEXT, "JSON Parser: " + json);
 
-            } catch (JSONException e) {
-                Log.e(TAG_CONTEXT, "JSONException " + e.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        "Something went wrong!", Toast.LENGTH_LONG).show();
-            }
-            return indicator;
+            return json;
         }
 
-        protected void onPostExecute(Integer result) {
-            Log.d(TAG_CONTEXT, "Success: " + indicator + ", Message: " + message);
-            // dismiss Progress Dialog
+        protected void onPostExecute(JSONObject json) {
             mProgressDialog.dismiss();
-            // check indicator
-            if(result == 1) {
-                Log.i(TAG_CONTEXT, "Route saved!");
-                Toast.makeText(getApplicationContext(), "Route saved!", Toast.LENGTH_SHORT).show();
-                // Go to results activity
-                // Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
-                // startActivity(intent);
-                saveNewRoute();
-                saveResults();
-            } else {
-                Log.i(TAG_CONTEXT, "Route not saved!");
-                Toast.makeText(getApplicationContext(), "Failed to save route!", Toast.LENGTH_SHORT).show();
+            Log.d(TAG_CONTEXT, "JSON: " + json);
+
+            try {
+                Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
+                if(json.getBoolean("success")) {
+                    saveNewRoute();
+                    saveResults(json.getInt("route_id"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -859,10 +838,7 @@ public class StartRouteActivity extends FragmentActivity
     /**
      * Update user
      */
-    private class UpdateUser extends AsyncTask<Void, Integer, Integer> {
-
-        int indicator;
-        String message;
+    private class UpdateUser extends AsyncTask<Void, Integer, JSONObject> {
 
         // variables for constructor
         int id;
@@ -881,9 +857,10 @@ public class StartRouteActivity extends FragmentActivity
         }
 
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected JSONObject doInBackground(Void... params) {
 
             List<NameValuePair> args = new ArrayList<>();
+            args.add(new BasicNameValuePair("tag", "update"));
             args.add(new BasicNameValuePair("user_id", String.valueOf(id)));
             args.add(new BasicNameValuePair("distance", String.valueOf(distance)));
             args.add(new BasicNameValuePair("time", String.valueOf(time)));
@@ -892,33 +869,27 @@ public class StartRouteActivity extends FragmentActivity
 
             // send data to server
             // get JSON response from server
-            JSONObject json = jsonParser.makeHttpRequest(getString(R.string.update_user), HttpMethod.POST, args);
+            JSONObject json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, args);
             Log.d(TAG_CONTEXT, "JSON Parser: " + json);
 
-            try {
-                // success tag indicates level of success from the server
-                indicator = json.getInt("success");
-                message = json.getString("message");
-            } catch (JSONException e) {
-                Log.e(TAG_CONTEXT, "JSONException: " + e.getMessage());
-            }
-            return indicator;
+            return json;
         }
 
-        protected void onPostExecute(Integer result) {
-            Log.d(TAG_CONTEXT, "Success: " + indicator + ", Message: " + message);
+        protected void onPostExecute(JSONObject json) {
             // dismiss Progress Dialog
             mProgressDialog.dismiss();
-            // check indicator
-            if(result == 1) {
-                Log.i(TAG_CONTEXT, "Route saved!");
-                // Go to results activity
-                // Intent intent = new Intent(getApplicationContext(), ResultsActivity.class);
-                // startActivity(intent);
-            } else {
-                Log.i(TAG_CONTEXT, "User could not be updated");
+
+            try {
+                Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
+                Log.i(TAG_CONTEXT, json.getString("message"));
+                if(json.getBoolean("success")) {
+                    // TODO: Take action
+                } else {
+
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
-
     }
 }
