@@ -9,9 +9,7 @@
     <string name="index">http://23.251.139.184/android/apexdb/route.php</string>-->
     <string name="login_url">http://192.168.0.17/android/apexdb/login_user.php</string>
     <string name="register_url">http://192.168.0.17/android/apexdb/create_user.php</string>
-    <string name="create_route_url">http://192.168.0.17/android/apexdb/create_route.php</string>
     <string name="get_results">http://192.168.0.17/android/apexdb/get_results.php</string>
     <string name="update_user">http://192.168.0.17/android/apexdb/update_user.php</string>
-    <string name="find_route_by_distance">http://192.168.0.17/android/apexdb/find_route_by_distance.php</string>
-    <string name="index">http://192.168.0.17/android/apexdb/route.php</string>
+    <string name="route">http://192.168.0.17/android/apexdb/route.php</string>
 </resources>

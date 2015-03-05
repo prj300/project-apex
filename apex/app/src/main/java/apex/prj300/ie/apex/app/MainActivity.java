@@ -26,7 +26,8 @@ import apex.prj300.ie.apex.app.fragments.NavigationDrawerFragment;
 import apex.prj300.ie.apex.app.fragments.NewRouteFragment;
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, HomeFragment.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
+        HomeFragment.OnFragmentInteractionListener {
 
     private static final String TAG_CONTEXT = "MainActivity";
     /**
@@ -65,7 +66,6 @@ public class MainActivity extends Activity
         } else {
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
-
             finish();
         }
     }
@@ -104,13 +104,10 @@ public class MainActivity extends Activity
                 fragment = new HomeFragment();
                 break;
             case 1:
-                fragment = new NewRouteFragment();
+                fragment = new FindRouteFragment();
                 break;
             case 2:
                 fragment = new MyResultsFragment();
-                break;
-            case 3:
-                fragment = new FindRouteFragment();
                 break;
         }
         fragmentManager.beginTransaction()

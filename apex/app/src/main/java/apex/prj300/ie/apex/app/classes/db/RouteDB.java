@@ -136,6 +136,7 @@ public class RouteDB extends SQLiteOpenHelper {
                 latLngs.add(new LatLng(cursor.getDouble(0), cursor.getDouble(1)));
             } while (cursor.moveToNext());
         }
+        cursor.close();
         db.close();
 
         return latLngs;
