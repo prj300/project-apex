@@ -42,7 +42,6 @@ public class MyResultsFragment extends Fragment {
 
     // Instantiate a new JSONParser class to handel incoming data
     JSONParser jsonParser = new JSONParser();
-
     private ProgressDialog mProgressDialog;
 
     private static ListView mListView;
@@ -135,6 +134,7 @@ public class MyResultsFragment extends Fragment {
     private class GetMyResults extends AsyncTask<Void, Integer, JSONObject> {
 
         int userId;
+        JSONObject json;
 
         public GetMyResults(int userId) {
             this.userId = userId;
@@ -145,7 +145,7 @@ public class MyResultsFragment extends Fragment {
             super.onPreExecute();
             // Show Progress Dialog before executing
             mProgressDialog = new ProgressDialog(getActivity());
-            mProgressDialog.setMessage("Finding suitable routes..");
+            mProgressDialog.setMessage("Downloading results history..");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();
@@ -153,18 +153,16 @@ public class MyResultsFragment extends Fragment {
 
         @Override
         protected JSONObject doInBackground(Void... params) {
-            JSONObject json = null;
             // Attempt server request
             try {
                 List<NameValuePair> args = new ArrayList<>();
                 // We only need the user ID to get their routes
+                args.add(new BasicNameValuePair("tag", "results"));
                 args.add(new BasicNameValuePair("user_id", String.valueOf(userId)));
-
                 // put response into a JSONObject
-                json = jsonParser.makeHttpRequest(getString(R.string.get_results), HttpMethod.POST, args);
+                json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, args);
 
                 Log.d(TAG_CONTEXT, "Response: " + json.toString());
-
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -180,14 +178,12 @@ public class MyResultsFragment extends Fragment {
         protected void onPostExecute(JSONObject json) {
             // dismiss Progress Dialog
             mProgressDialog.dismiss();
+
             try {
-                Log.d(TAG_CONTEXT, "Result: " + json.getString("message"));
-                if(json.getInt("success") == 1) {
-                    // routes available
-                    // save data to SQLite db
-                    saveRoutes(json);
+                if(json.getBoolean("success")) {
+                    Log.i(TAG_CONTEXT, json.getString("message"));
                 } else {
-                    Toast.makeText(getActivity(), "No results available!", Toast.LENGTH_LONG).show();
+                    Log.i(TAG_CONTEXT, json.getString("message"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -195,6 +191,10 @@ public class MyResultsFragment extends Fragment {
 
         }
 
+    }
+
+    private void getResultsFromJson(JSONObject results) {
+        Log.i(TAG_CONTEXT, "Results" + results);
     }
 
     /**

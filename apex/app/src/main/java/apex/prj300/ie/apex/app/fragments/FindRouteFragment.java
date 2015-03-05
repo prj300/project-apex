@@ -255,54 +255,54 @@ public class FindRouteFragment extends Fragment
 
             // make HTTP request and get response
             return jsonParser.makeHttpRequest(getString(
-                    R.string.route), HttpMethod.POST, args);
+                    R.string.route_controller), HttpMethod.POST, args);
         }
-
-        protected void onProgressUpdate(Integer... progress) {
-            mProgressDialog.incrementProgressBy(1);
-        }
-
 
         protected void onPostExecute(JSONObject json) {
             mProgressDialog.dismiss();
-            if(json != null) {
-                Log.d(TAG_CONTEXT, "Response: " + json);
-                saveRoute(json);
-            } else {
-                Toast.makeText(getActivity(), "Could not connect to server.", Toast.LENGTH_LONG).show();
+            Log.d(TAG_CONTEXT, "JSON: " + json);
+            try {
+                // if route was retrieved
+                if(json.getBoolean("success")) {
+                    getRouteFromJson(json.getJSONObject("route"));
+                } else {
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    /**
-     * Save routes
-     */
-    private void saveRoute(JSONObject json) {
-        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
-        Log.d("WildAtlanticWayDb", "Tables Cleared");
+    private void getRouteFromJson(JSONObject json) {
         ArrayList<WayPoint> wayPoints = new ArrayList<>();
-
         try {
-            // get JSON array from JSON route object
+            // get json array from JSON route object
             JSONArray route = json.getJSONArray("route");
-            // loop through the arrays and add the lat longs into a way point array
-            for(int i=0;i < route.length();i++) {
+            // loop through list and add the lat longs into a way point array
+            for(int i=0; i < route.length();i++) {
                 int id = route.getJSONObject(i).getInt("id");
                 double lat = route.getJSONObject(i).getDouble("lat");
                 double lng = route.getJSONObject(i).getDouble("lng");
                 wayPoints.add(new WayPoint(id, lat, lng));
             }
-            // clear any previous data from the table
-            db.resetTables();
-            // add route to SQLite database
-            db.addWaypoints(wayPoints);
-            db.addRoute(Float.valueOf(json.getString("distance")));
-            // Log.d("Route", "Route Size: " + wayPoints.size());
-            startActivity(new Intent(getActivity(), StartRouteActivity.class));
+            saveRoute(wayPoints); // store way points in SQLite database
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Save route
+     */
+    private void saveRoute(ArrayList<WayPoint> wayPoints) {
+        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        db.resetTables(); // clear any previous data in tables
+        db.addWaypoints(wayPoints);
+        Log.i(TAG_CONTEXT, "Route saved");
+
+        // open new activity
+        startActivity(new Intent(getActivity(), StartRouteActivity.class));
     }
 
 }

@@ -23,6 +23,7 @@ import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -42,37 +43,10 @@ public class LoginActivity extends Activity {
     Button mRegister;
     Button mLogin;
 
+    String email;
+    String password;
+
     private static final String TAG = "LoginActivity";
-
-    // indicates success of JSON response
-    private int indicator = 0;
-
-    /**
-     * User params
-     */
-    private User user;
-    private int id;
-    private String password;
-    private static String email;
-    private static Grade grade;
-    private static float totalDistance;
-    private static long totalTime;
-    private static float maxSpeed;
-    private static float avgSpeed;
-
-    /**
-     * JSON Node Responses
-     */
-    private static final String TAG_SUCCESS = "success";
-    private static final String TAG_ID = "id";
-    private static final String TAG_GRADE = "grade";
-    private static final String TAG_TOTAL_TIME = "totaltime";
-    private static final String TAG_TOTAL_DISTANCE = "totaldistance";
-    private static final String TAG_MAX_SPEED = "maxspeed";
-    private static final String TAG_AVG_SPEED = "avgspeed";
-
-    // Toast messages
-    private static final String TAG_MISSING_FIELDS = "Required field(s) missing";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +58,9 @@ public class LoginActivity extends Activity {
         mPassword = (EditText) findViewById(R.id.txtPassword);
         mLogin = (Button) findViewById(R.id.btnLogin);
         mRegister = (Button) findViewById(R.id.btnRegister);
+
+        mEmail.setText("abcde@12345.com");
+        mPassword.setText("12345");
 
         // register button listeners
         mLogin.setOnClickListener(new View.OnClickListener() {
@@ -163,7 +140,7 @@ public class LoginActivity extends Activity {
     /**
      * Background task for logging in
      */
-    private class LoginUser extends AsyncTask<User, Void, Integer> {
+    private class LoginUser extends AsyncTask<User, Void, JSONObject> {
 
         // before starting task show Progress Dialog
         @Override
@@ -177,95 +154,92 @@ public class LoginActivity extends Activity {
         }
 
         @Override
-        protected Integer doInBackground(User...args) {
-
+        protected JSONObject doInBackground(User...args) {
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
             try {
                 List<NameValuePair> params = new ArrayList<>();
+                params.add(new BasicNameValuePair("tag", "login"));
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(getString(R.string.login_url), HttpMethod.POST, params);
-
-                Log.d("Login", "Response: " + json.toString());
-
-                indicator = json.getInt(TAG_SUCCESS);
+                json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return indicator;
+            return json;
         }
 
         // after completing dismiss Progress Dialog
-        protected void onPostExecute(Integer result) {
-            Log.d(TAG, "Success: " + result);
+        protected void onPostExecute(JSONObject json) {
             // dismiss progress dialog
+            Log.d(TAG, "Response: " + json);
             mProgressDialog.dismiss();
-            // Login successful
-            if(result == 1) {
-                try {
-                    // retrieve values from json response
-                    GetJSONNodes(json);
-                    Toast.makeText(getApplicationContext(), "Logged in as " + email, Toast.LENGTH_LONG).show();
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+            try {
+                if(json.getBoolean("success")) {
+                    // login successful
+                    Log.d("Login", "Login successful");
+                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
+                    // now get user from json
+                    getUserFromJson(json.getJSONObject("user"));
+                } else {
+                    // Login unsuccessful
+                    Log.d("Login", "Login unsuccessful");
+                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 }
-            } else {
-                Toast.makeText(getApplicationContext(), "Incorrect email/password", Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
+
     }
 
     /**
-     * Login User
+     * Extract JSON to User model
      */
-    private void Login() {
-        // Instantiate and build a new user
-        user = new User(id, email, grade,
-                totalDistance, totalTime,
-                maxSpeed, avgSpeed);
+    private void getUserFromJson(JSONObject user) throws JSONException {
+        Log.d("User", "User" + user);
 
+        // get JSON values
+        int userId = user.getInt("id");
+        String email = user.getString("email");
+        Grade grade = Grade.valueOf(user.getString("grade"));
+        float distance = Float.valueOf(user.getString("total_distance"));
+        long time = user.getLong("total_time");
+        float maxSpeed = Float.valueOf(user.getString("max_speed"));
+        float avgSpeed = Float.valueOf(user.getString("avg_speed"));
+
+        // create user
+        User mUser = new User(userId, email, grade, distance, time, maxSpeed, avgSpeed);
+        // store user in SQLite database
+        Login(mUser);
+    }
+
+    /**
+     * Save user to SQLite database
+     * Logged in
+     */
+    private void Login(User user) {
         // instantiate User Database to store User's details locally
         UserDB db = new UserDB(this);
-
-        // clear any previous data that may be in the database
-        db.resetTables();
+        db.resetTables(); // clear previous table data
         db.addUser(user);
+        Log.i(TAG, "Logged in as " + email);
 
-        // Move to home page
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-
-        Log.i(TAG, "Logged in as " +  email);
+        // Move to main activity
+        startActivity(new Intent(this, MainActivity.class));
         finish();
-
     }
 
-    /**
-     * Retrieve JSON Response nodes of user
-     */
-    private void GetJSONNodes(JSONObject json) throws JSONException {
-        // registration successful
-        id = json.getInt(TAG_ID);
-        grade = Grade.valueOf(json.getString(TAG_GRADE));
-        totalDistance = Float.valueOf(json.getString(TAG_TOTAL_DISTANCE));
-        totalTime = Long.valueOf(json.getString(TAG_TOTAL_TIME));
-        maxSpeed = Float.valueOf(json.getString(TAG_MAX_SPEED));
-        avgSpeed = Float.valueOf(json.getString(TAG_AVG_SPEED));
-
-        // Login User
-        Login();
-
-    }
 
     /**
      * Background task for registering
      */
-    private class RegisterUser extends AsyncTask<User, Void, Integer> {
+    protected class RegisterUser extends AsyncTask<User, Void, JSONObject> {
 
         @Override
         protected void onPreExecute() {
@@ -279,64 +253,48 @@ public class LoginActivity extends Activity {
         }
 
         @Override
-        protected Integer doInBackground(User... args) {
+        protected JSONObject doInBackground(User... args) {
 
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
             try {
                 List<NameValuePair> params = new ArrayList<>();
+                params.add(new BasicNameValuePair("tag", "register"));
                 params.add(new BasicNameValuePair("email", email));
                 params.add(new BasicNameValuePair("password", password));
 
                 // get JSON Object
-                json = jsonParser.makeHttpRequest(getString(R.string.register_url), HttpMethod.POST, params);
+                json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
 
-                Log.d("Register", "Response: " + json.toString());
-
-                // response indicator from JSON
-                indicator = json.getInt(TAG_SUCCESS);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return indicator;
+            return json;
         }
 
-        // after completing dismiss Progress Dialog
-        protected void onPostExecute(Integer result) {
-            Log.d("Success: ", result.toString());
+        /**
+         * Post server request logic takes place here
+         */
+        protected void onPostExecute(JSONObject json) {
             // dismiss progress dialog
+            Log.d(TAG, "Response: " + json);
             mProgressDialog.dismiss();
-            if (result == 1) {
-                try {
-                    GetJSONNodes(json);
-                    Toast.makeText(getApplicationContext(), "Registration successful", Toast.LENGTH_LONG).show();
-                    Log.i("Register", "Registered as " + email);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+            try {
+                if(json.getBoolean("success")) {
+                    Log.d("Register", "Registration Successful");
+                    // registration successful
+                    getUserFromJson(json.getJSONObject("user"));
+                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 }
-            } else if (result == -1) {
-                Toast.makeText(getApplicationContext(), "A user with email "
-                        + email + " already exists.", Toast.LENGTH_LONG).show();
-            } else if (result == -3) {
-                Toast.makeText(getApplicationContext(),
-                        "Invalid e-mail format", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+
         }
 
     }
 
-    /*
-    // toast alerts
-    private void popToast(String message, String length) {
-
-        if(length.equals("short")) {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-        }
-    }
-    */
 }
