@@ -40,7 +40,6 @@ public class MyStatsFragment extends Fragment implements PassStatsListener {
                              Bundle savedInstanceState) {
 
         View mView = inflater.inflate(R.layout.fragment_stats, container, false);
-        mTextAvgSpeed = (TextView) mView.findViewById(R.id.txtHeadingDistance);
         return mView;
     }
 
