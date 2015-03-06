@@ -179,6 +179,7 @@ public class LoginActivity extends Activity {
             Log.d(TAG, "Response: " + json);
             mProgressDialog.dismiss();
 
+            if(json != null)
             try {
                 if(json.getBoolean("success")) {
                     // login successful
@@ -192,8 +193,10 @@ public class LoginActivity extends Activity {
                     Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "JSONException: " + e.getMessage());
+                Toast.makeText(getApplicationContext(), "Could not connect to server.", Toast.LENGTH_LONG).show();
             }
+
         }
 
     }
@@ -258,18 +261,13 @@ public class LoginActivity extends Activity {
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
-            try {
-                List<NameValuePair> params = new ArrayList<>();
-                params.add(new BasicNameValuePair("tag", "register"));
-                params.add(new BasicNameValuePair("email", email));
-                params.add(new BasicNameValuePair("password", password));
+            List<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("tag", "register"));
+            params.add(new BasicNameValuePair("email", email));
+            params.add(new BasicNameValuePair("password", password));
 
-                // get JSON Object
-                json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            // get JSON Object
+            json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
             return json;
         }
 
@@ -285,12 +283,13 @@ public class LoginActivity extends Activity {
                     Log.d("Register", "Registration Successful");
                     // registration successful
                     getUserFromJson(json.getJSONObject("user"));
-                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
+                    // Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "JSONException: " + e.getMessage());
+                Toast.makeText(getApplicationContext(), "Could not connect to server.", Toast.LENGTH_LONG).show();
             }
 
         }

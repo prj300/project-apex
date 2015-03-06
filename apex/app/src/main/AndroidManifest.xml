@@ -30,7 +30,7 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_home" >
+            android:label="@string/title_activity_login" >
         </activity>
 
         <meta-data
@@ -42,7 +42,6 @@
 
         <activity
             android:name=".StartRouteActivity"
-            android:label="@string/title_activity_new_route"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" >
             <meta-data

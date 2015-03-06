@@ -7,7 +7,7 @@
     <string name="action_login">Login</string>
     <string name="text_password">********</string>
     <string name="action_register">Register</string>
-    <string name="title_activity_home">My Apex</string>
+    <string name="title_activity_login">Login</string>
     <string name="action_my_routes">My Results</string>
     <string name="action_start_recording">Start Recording</string>
     <string name="action_find_routes">Find Route</string>
@@ -36,5 +36,6 @@
     <string name="title_activity_start_route">StartRouteActivity</string>
     <string name="text_distance_heading">DISTANCE</string>
     <string name="text_distance_time">TIME</string>
+    <string name="title_activity_main">Home</string>
 
 </resources>

@@ -118,7 +118,7 @@ public class MainActivity extends Activity
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.title_activity_home);
+                mTitle = getString(R.string.title_activity_main);
                 break;
             case 2:
                 mTitle = getString(R.string.action_start_recording);
