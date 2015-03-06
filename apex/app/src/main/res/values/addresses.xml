@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="user_controller">http://192.168.0.17/android/apexdb/user_controller.php</string>
-    <string name="update_user">http://192.168.0.17/android/apexdb/update_user.php</string>
-    <string name="route_controller">http://192.168.0.17/android/apexdb/route_controller.php</string>
+    <string name="user_controller">http://23.251.139.184/apex/user_controller.php</string>
+    <string name="route_controller">http://23.251.139.184/apex/route_controller.php</string>
 </resources>
