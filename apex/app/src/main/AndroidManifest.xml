@@ -38,7 +38,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".StartRouteActivity"
+            android:name=".NewRouteActivity"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" >
             <meta-data

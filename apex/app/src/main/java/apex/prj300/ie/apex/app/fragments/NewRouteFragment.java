@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import apex.prj300.ie.apex.app.StartRouteActivity;
+import apex.prj300.ie.apex.app.NewRouteActivity;
 import apex.prj300.ie.apex.app.R;
 
 public class NewRouteFragment extends Fragment {
@@ -22,7 +22,7 @@ public class NewRouteFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startActivity(new Intent(getActivity(), StartRouteActivity.class));
+        startActivity(new Intent(getActivity(), NewRouteActivity.class));
     }
 
     @Override

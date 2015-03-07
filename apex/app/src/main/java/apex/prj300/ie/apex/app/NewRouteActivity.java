@@ -59,7 +59,7 @@ import static com.google.android.gms.common.api.GoogleApiClient.*;
 import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 
 
-public class StartRouteActivity extends FragmentActivity
+public class NewRouteActivity extends FragmentActivity
         implements ActionBar.TabListener, LocationListener,
         ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -271,7 +271,7 @@ public class StartRouteActivity extends FragmentActivity
      */
     public void saveRouteDialog() {
         // Instantiate an AlertDialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(StartRouteActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
         // Set main message
         builder.setMessage(R.string.dialog_save_route)
                 // Set up buttons, and what action to take
@@ -328,7 +328,7 @@ public class StartRouteActivity extends FragmentActivity
 
 
     public void chooseTerrainDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(StartRouteActivity.this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(NewRouteActivity.this);
         builder.setTitle(R.string.pick_terrain)
                 .setItems(R.array.terrains_array, new DialogInterface.OnClickListener() {
                     @Override
@@ -724,7 +724,7 @@ public class StartRouteActivity extends FragmentActivity
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mProgressDialog = new ProgressDialog(StartRouteActivity.this);
+            mProgressDialog = new ProgressDialog(NewRouteActivity.this);
             mProgressDialog.setMessage("Saving new route...");
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
@@ -863,20 +863,17 @@ public class StartRouteActivity extends FragmentActivity
             args.add(new BasicNameValuePair("distance", String.valueOf(distance)));
             args.add(new BasicNameValuePair("time", String.valueOf(time)));
             args.add(new BasicNameValuePair("max_speed", String.valueOf(maxSpeed)));
-            args.add(new BasicNameValuePair("average_speed", String.valueOf(averageSpeed)));
+            args.add(new BasicNameValuePair("avg_speed", String.valueOf(averageSpeed)));
 
             // send data to server
             // get JSON response from server
             return jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, args);
-
         }
 
         protected void onPostExecute(JSONObject json) {
             // dismiss Progress Dialog
             mProgressDialog.dismiss();
-
             try {
-                Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 Log.i(TAG_CONTEXT, json.getString("message"));
                 if(json.getBoolean("success")) {
                     // TODO: Take action
@@ -884,7 +881,7 @@ public class StartRouteActivity extends FragmentActivity
 
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG_CONTEXT, "JSONException: " + e.getMessage());
             }
         }
     }

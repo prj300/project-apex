@@ -37,7 +37,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import apex.prj300.ie.apex.app.StartRouteActivity;
+import apex.prj300.ie.apex.app.NewRouteActivity;
 import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
@@ -301,7 +301,7 @@ public class FindRouteFragment extends Fragment
         Log.i(TAG_CONTEXT, "Route saved");
 
         // open new activity
-        startActivity(new Intent(getActivity(), StartRouteActivity.class));
+        startActivity(new Intent(getActivity(), NewRouteActivity.class));
     }
 
 }
