@@ -37,5 +37,8 @@
     <string name="text_distance_heading">DISTANCE</string>
     <string name="text_distance_time">TIME</string>
     <string name="title_activity_main">Home</string>
+    <string name="action_forgot_password">Forgot password?</string>
+    <string name="title_activity_reset_password">ResetPasswordActivity</string>
+    <string name="action_reset">Reset Password</string>
 
 </resources>

@@ -95,8 +95,7 @@ public class FindRouteFragment extends Fragment
                             if(locationEnabled()) {
                                 findRouteByDistance();
                             } else {
-                                Toast.makeText(getActivity(),
-                                        "Turn on location.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getActivity(), "Turn on location.", Toast.LENGTH_LONG).show();
                             }
                         } else {
                             Toast.makeText(getActivity(), "No network connection!",
@@ -262,10 +261,10 @@ public class FindRouteFragment extends Fragment
             mProgressDialog.dismiss();
             Log.d(TAG_CONTEXT, "JSON: " + json);
             try {
+                Toast.makeText(getActivity(), json.getString("success"), Toast.LENGTH_SHORT).show();
                 // if route was retrieved
                 if(json.getBoolean("success")) {
                     getRouteFromJson(json.getJSONObject("route"));
-                } else {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

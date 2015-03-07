@@ -40,18 +40,14 @@ public class MainActivity extends Activity
      */
     private CharSequence mTitle;
 
-    // count to check if user is logged in
-    private int count;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // first check if a user is logged in
-        checkLoginStatus();
-        // if user exists
-        if(count > 0) {
+        // if user is not logged in redirect to login activity
+        if(loggedIn() < 1) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
+        } else {
             setContentView(R.layout.activity_home);
 
             mNavigationDrawerFragment = (NavigationDrawerFragment)
@@ -62,34 +58,15 @@ public class MainActivity extends Activity
             mNavigationDrawerFragment.setUp(
                     R.id.navigation_drawer,
                     (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        } else {
-            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(intent);
-            finish();
         }
     }
 
-
-    private void checkLoginStatus() {
-        // checking if user is already logged in
-        UserDB db = new UserDB(getApplicationContext());
-        // row count
-        count = db.rowCount();
-
-        if(count > 0) {
-            getUser();
-        }
-    }
-
-    private void getUser() {
-        UserDB db = new UserDB(getApplicationContext());
-
-        /*
-      User params
+    /**
+     * Returns login status
      */
-        User user = db.getUser();
-        Log.i("User: ", user.getEmail());
+    private int loggedIn() {
+        UserDB db = new UserDB(this);
+        return db.rowCount();
     }
 
 
@@ -115,22 +92,6 @@ public class MainActivity extends Activity
                 .commit();
     }
 
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_activity_main);
-                break;
-            case 2:
-                mTitle = getString(R.string.action_start_recording);
-                break;
-            case 3:
-                mTitle = getString(R.string.action_my_routes);
-                break;
-            case 4:
-                mTitle = getString(R.string.action_find_routes);
-        }
-    }
-
     private void signOut() {
         Log.d(TAG_CONTEXT, "Logged out.");
 
@@ -142,8 +103,7 @@ public class MainActivity extends Activity
         RouteDB routeDB = new RouteDB(getApplicationContext());
         routeDB.resetTables();
 
-
-        Toast.makeText(getApplicationContext(), "Logged Out.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Logged Out", Toast.LENGTH_SHORT).show();
         // redirect to login activity
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);

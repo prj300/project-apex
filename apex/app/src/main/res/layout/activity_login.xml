@@ -31,6 +31,8 @@
                   android:layout_centerHorizontal="true"
                   android:orientation="horizontal"
                   android:layout_below="@id/txtPassword"
+                  android:id="@+id/buttons"
+                  android:paddingBottom="80dp"
                   android:layout_marginTop="20dp">
 
         <Button android:layout_width="120dp"
@@ -52,7 +54,20 @@
                 android:layout_marginLeft="5dp"
                 android:layout_marginStart="5dp"
                 style="?android:attr/buttonBarButtonStyle"/>
+
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/buttons"
+        android:layout_width="160dp"
+        android:layout_height="35dp">
+        <TextView
+            android:id="@+id/textForgotPassword"
+            android:textSize="18sp"
+            android:text="@string/action_forgot_password"
+            android:layout_width="155dp"
+            android:layout_height="33dp" />
+        </LinearLayout>
 
 </RelativeLayout>

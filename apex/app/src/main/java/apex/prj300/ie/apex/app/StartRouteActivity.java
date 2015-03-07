@@ -78,8 +78,6 @@ public class StartRouteActivity extends FragmentActivity
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 
-    protected static final String TAG_SUCCESS = "success";
-
 
     /**
      * Variables that will be used and changed within the activity lifecycle
@@ -869,10 +867,8 @@ public class StartRouteActivity extends FragmentActivity
 
             // send data to server
             // get JSON response from server
-            JSONObject json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, args);
-            Log.d(TAG_CONTEXT, "JSON Parser: " + json);
+            return jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, args);
 
-            return json;
         }
 
         protected void onPostExecute(JSONObject json) {

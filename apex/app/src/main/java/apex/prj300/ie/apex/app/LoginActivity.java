@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Paint;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import apex.prj300.ie.apex.app.classes.enums.Grade;
@@ -23,7 +25,6 @@ import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.User;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,12 +37,12 @@ public class LoginActivity extends Activity {
     // progress dialog for AsyncTask
     private ProgressDialog mProgressDialog;
     JSONParser jsonParser = new JSONParser();
-    private JSONObject json;
 
     EditText mEmail;
     EditText mPassword;
     Button mRegister;
     Button mLogin;
+    TextView mPasswordReset;
 
     String email;
     String password;
@@ -54,13 +55,13 @@ public class LoginActivity extends Activity {
 
         setContentView(R.layout.activity_login);
 
+        mPasswordReset = (TextView) findViewById(R.id.textForgotPassword);
+        // underline password reset link for emphasis
+        mPasswordReset.setPaintFlags(mPasswordReset.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
         mEmail = (EditText) findViewById(R.id.txtEmail);
         mPassword = (EditText) findViewById(R.id.txtPassword);
         mLogin = (Button) findViewById(R.id.btnLogin);
         mRegister = (Button) findViewById(R.id.btnRegister);
-
-        mEmail.setText("abcde@12345.com");
-        mPassword.setText("12345");
 
         // register button listeners
         mLogin.setOnClickListener(new View.OnClickListener() {
@@ -94,6 +95,13 @@ public class LoginActivity extends Activity {
                         new RegisterUser().execute();
                     }
                 }
+            }
+        });
+
+        mPasswordReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
             }
         });
     }
@@ -158,19 +166,13 @@ public class LoginActivity extends Activity {
             email = mEmail.getText().toString();
             password = mPassword.getText().toString();
 
-            try {
-                List<NameValuePair> params = new ArrayList<>();
-                params.add(new BasicNameValuePair("tag", "login"));
-                params.add(new BasicNameValuePair("email", email));
-                params.add(new BasicNameValuePair("password", password));
+            List<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("tag", "login"));
+            params.add(new BasicNameValuePair("email", email));
+            params.add(new BasicNameValuePair("password", password));
 
-                // get JSON Object
-                json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return json;
+            // get JSON Object
+            return jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
         }
 
         // after completing dismiss Progress Dialog
@@ -194,7 +196,8 @@ public class LoginActivity extends Activity {
                 }
             } catch (JSONException e) {
                 Log.e(TAG, "JSONException: " + e.getMessage());
-                Toast.makeText(getApplicationContext(), "Could not connect to server.", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Server error.", Toast.LENGTH_LONG).show();
             }
 
         }
@@ -267,8 +270,7 @@ public class LoginActivity extends Activity {
             params.add(new BasicNameValuePair("password", password));
 
             // get JSON Object
-            json = jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
-            return json;
+            return jsonParser.makeHttpRequest(getString(R.string.user_controller), HttpMethod.POST, params);
         }
 
         /**
@@ -278,18 +280,25 @@ public class LoginActivity extends Activity {
             // dismiss progress dialog
             Log.d(TAG, "Response: " + json);
             mProgressDialog.dismiss();
-            try {
-                if(json.getBoolean("success")) {
-                    Log.d("Register", "Registration Successful");
-                    // registration successful
-                    getUserFromJson(json.getJSONObject("user"));
-                    // Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
-                } else {
-                    // Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
+
+            if(json != null) {
+                try {
+                    if (json.getBoolean("success")) {
+                        // login successful
+                        Log.d("Login", "Login successful");
+                        Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
+                        // now get user from json
+                        getUserFromJson(json.getJSONObject("user"));
+                    } else {
+                        // Login unsuccessful
+                        Log.d("Login", "Login unsuccessful");
+                        Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSONException: " + e.getMessage());
                 }
-            } catch (JSONException e) {
-                Log.e(TAG, "JSONException: " + e.getMessage());
-                Toast.makeText(getApplicationContext(), "Could not connect to server.", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Server error.", Toast.LENGTH_LONG).show();
             }
 
         }
