@@ -64,7 +64,6 @@ public class NewRouteActivity extends FragmentActivity
         ConnectionCallbacks, OnConnectionFailedListener {
 
     JSONParser jsonParser = new JSONParser();
-    Gson gson = new Gson();
     private ProgressDialog mProgressDialog;
 
     /**
@@ -96,7 +95,7 @@ public class NewRouteActivity extends FragmentActivity
     /**
      * Route Model Properties
      */
-    protected static int routeId;
+    protected static int mRouteId;
     protected static Grade routeGrade;
     protected static Terrain routeTerrain;
     protected static List<Double> routeLats = new ArrayList<>();
@@ -106,7 +105,6 @@ public class NewRouteActivity extends FragmentActivity
     /**
      * Results Model Properties
      */
-    protected static int resultId;
     protected static float mMaxSpeed;
     // protected float routeDistance;
     protected static float mAvgSpeed;
@@ -224,10 +222,7 @@ public class NewRouteActivity extends FragmentActivity
     private User getUser() {
         UserDB db = new UserDB(this);
 
-        User user = db.getUser();
-        db.close();
-
-        return user;
+        return db.getUser();
     }
 
     /**
@@ -397,11 +392,11 @@ public class NewRouteActivity extends FragmentActivity
         dateCreated = new java.sql.Date(utilDate.getTime());
 
         // build route properties from results
-        Route newRoute = new Route(routeId, getUser().getId(), routeGrade,
+        Route newRoute = new Route(mRouteId, getUser().getId(), routeGrade,
                 routeTerrain, mTotalDistance, dateCreated);
         db.addRoute(newRoute);
         // now add lat and long points to separate table
-        db.addLatsLong(routeId, routeLats, routeLngs);
+        db.addLatsLong(mRouteId, routeLats, routeLngs);
         db.close();
 
         Log.d(TAG_CONTEXT, "Route Saved Locally");
@@ -417,11 +412,11 @@ public class NewRouteActivity extends FragmentActivity
     /**
      * Saving results
      */
-    public void saveResults(int routeId) {
+    public void saveResults(int routeId, int resultId) {
         // Connection to ResultsDB
         ResultsDB db = new ResultsDB(this);
         // Add results
-        Result newResult = new Result(resultId, getUser().getId(), routeId,
+        Result newResult = new Result(resultId, getUser().getId(), mRouteId,
                 mTotalDistance, mMaxSpeed, mAvgSpeed, mTime, dateCreated);
         // Insert new result into database
         db.addResult(newResult);
@@ -540,6 +535,8 @@ public class NewRouteActivity extends FragmentActivity
     private void stopLocationUpdates() {
         LocationServices.FusedLocationApi.
                 removeLocationUpdates(mGoogleApiClient, this);
+        Toast.makeText(getApplicationContext(), "Stopped recording", Toast.LENGTH_SHORT).show();
+        Log.i(TAG_CONTEXT, "Stopped recording");
     }
 
     /**
@@ -549,6 +546,8 @@ public class NewRouteActivity extends FragmentActivity
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this
         );
+        Toast.makeText(getApplicationContext(), "Recording", Toast.LENGTH_SHORT).show();
+        Log.i(TAG_CONTEXT, "Recording");
     }
 
     /**
@@ -747,21 +746,18 @@ public class NewRouteActivity extends FragmentActivity
             params.add(new BasicNameValuePair("avg_speed", String.valueOf(mAvgSpeed)));
             params.add(new BasicNameValuePair("time", String.valueOf(mTime)));
 
-            json = jsonParser.makeHttpRequest(getString(R.string.route_controller), HttpMethod.POST, params);
-            Log.d(TAG_CONTEXT, "JSON Parser: " + json);
-
-            return json;
+            return jsonParser.makeHttpRequest(getString(R.string.route_controller), HttpMethod.POST, params);
         }
 
         protected void onPostExecute(JSONObject json) {
             mProgressDialog.dismiss();
-            Log.d(TAG_CONTEXT, "JSON: " + json);
+            Log.d(TAG_CONTEXT, "Response: " + json);
 
             try {
                 Toast.makeText(getApplicationContext(), json.getString("message"), Toast.LENGTH_LONG).show();
                 if(json.getBoolean("success")) {
                     saveNewRoute();
-                    saveResults(json.getInt("route_id"));
+                    saveResults(json.getInt("route_id"), json.getInt("result_id"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();

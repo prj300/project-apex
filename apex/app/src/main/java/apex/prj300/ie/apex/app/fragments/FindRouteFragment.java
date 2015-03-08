@@ -34,13 +34,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import apex.prj300.ie.apex.app.DiscoveryPointsActivity;
+import apex.prj300.ie.apex.app.MainActivity;
 import apex.prj300.ie.apex.app.NewRouteActivity;
 import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
 import apex.prj300.ie.apex.app.classes.enums.HttpMethod;
+import apex.prj300.ie.apex.app.classes.enums.Terrain;
 import apex.prj300.ie.apex.app.classes.methods.JSONParser;
 import apex.prj300.ie.apex.app.classes.models.WayPoint;
 
@@ -58,6 +62,8 @@ public class FindRouteFragment extends Fragment
     private GoogleApiClient mGoogleApiClient;
 
     private static final String TAG_CONTEXT = "FindRouteFragment";
+    // counties on the Wild Atlantic Way Route
+    private static String[] counties = new String[] { "Donegal", "Sligo", "Mayo", "Galway", "Clare", "Limerick", "Kerry", "Cork"};
 
     public FindRouteFragment() {
         // Required empty public constructor
@@ -103,8 +109,16 @@ public class FindRouteFragment extends Fragment
                         }
                         break;
                     case 1:
-                        break;
-                    case 2:
+                        if(isConnected()) {
+                            if(locationEnabled()) {
+                                findRouteDiscoveryPoint();
+                            } else {
+                                Toast.makeText(getActivity(), "Turn on location.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            Toast.makeText(getActivity(), "No network connection!",
+                                    Toast.LENGTH_LONG).show();
+                        }
                         break;
                 }
             }
@@ -112,6 +126,47 @@ public class FindRouteFragment extends Fragment
         return rootView;
 
     }
+
+    /**
+     * Dialog prompts user to filter by county
+     */
+    private void findRouteDiscoveryPoint() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.choose_county);
+
+        // Instantiate a NumberPicker
+        // can be used with String also
+        final NumberPicker np = new NumberPicker(getActivity());
+
+        np.setMinValue(0);
+        np.setMaxValue(counties.length-1);
+        np.setWrapSelectorWheel(false);
+        np.setDisplayedValues(counties);
+        np.setValue(0);
+        builder.setView(np);
+
+        builder.setPositiveButton(R.string.title_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String county = (String) Array.get(counties, np.getValue());
+                Log.d(TAG_CONTEXT, "County selected: " + county);
+                if(isConnected()) {
+                    new FindDiscoveryPoints("discovery", county).execute();
+                } else {
+                    Toast.makeText(getActivity(), "No network connection.", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+        builder.setNegativeButton(R.string.title_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Log.d(TAG_CONTEXT, "Cancelled");
+            }
+        });
+        builder.show();
+    }
+
 
     /**
      * Check network connection before
@@ -142,14 +197,14 @@ public class FindRouteFragment extends Fragment
 
         final NumberPicker np = new NumberPicker(getActivity());
         // populate an array with 100 numbers
-        String[] nums = new String[100];
+        String[] nums = new String[200];
         for(int i=0;i<nums.length;i++)
             nums[i] = Integer.toString(i);
         np.setMinValue(0);
-        np.setMaxValue(nums.length);
+        np.setMaxValue(nums.length-1);
         np.setWrapSelectorWheel(false);
         np.setDisplayedValues(nums);
-        np.setValue(25);
+        np.setValue(100);
         builder.setView(np);
 
         builder.setPositiveButton(R.string.title_ok, new DialogInterface.OnClickListener() {
@@ -158,7 +213,7 @@ public class FindRouteFragment extends Fragment
                 Log.d(TAG_CONTEXT, "Distance selected: " + np.getValue());
                 new FindRouteByDistance((float) np.getValue(),
                         mLastLocation.getLatitude(),
-                        mLastLocation.getLongitude())
+                        mLastLocation.getLongitude(), "distance")
                         .execute();
 
             }
@@ -223,12 +278,13 @@ public class FindRouteFragment extends Fragment
         float picked;
         double latitude;
         double longitude;
+        String tag;
 
-        public FindRouteByDistance(float picked, double lat, double lon) {
+        public FindRouteByDistance(float picked, double lat, double lon, String tag) {
             this.picked = picked;
             this.latitude = lat;
             this.longitude = lon;
-
+            this.tag = tag;
         }
 
         @Override
@@ -247,7 +303,7 @@ public class FindRouteFragment extends Fragment
         @Override
         protected JSONObject doInBackground(Void... params) {
             List<NameValuePair> args = new ArrayList<>();
-            args.add(new BasicNameValuePair("tag", "dist"));
+            args.add(new BasicNameValuePair("tag", tag));
             args.add(new BasicNameValuePair("distance", String.valueOf(picked)));
             args.add(new BasicNameValuePair("latitude", String.valueOf(latitude)));
             args.add(new BasicNameValuePair("longitude", String.valueOf(longitude)));
@@ -261,7 +317,7 @@ public class FindRouteFragment extends Fragment
             mProgressDialog.dismiss();
             Log.d(TAG_CONTEXT, "JSON: " + json);
             try {
-                Toast.makeText(getActivity(), json.getString("success"), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 // if route was retrieved
                 if(json.getBoolean("success")) {
                     getRouteFromJson(json.getJSONObject("route"));
@@ -304,4 +360,82 @@ public class FindRouteFragment extends Fragment
         startActivity(new Intent(getActivity(), NewRouteActivity.class));
     }
 
+    /**
+     * Returns list of way points for points of interest on WAW
+     */
+    private class FindDiscoveryPoints extends AsyncTask<Void, Void, JSONObject> {
+        String discovery; // tag
+        String county; // chosen county
+
+        public FindDiscoveryPoints(String discovery, String county) {
+            this.discovery = discovery;
+            this.county = county;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show Progress Dialog before executing
+            mProgressDialog = new ProgressDialog(getActivity());
+            mProgressDialog.setMessage("Finding discovery points..");
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setCancelable(true);
+            mProgressDialog.show();
+        }
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+
+            // name value pairs that are sent to server
+            ArrayList<NameValuePair> args = new ArrayList<>();
+            args.add(new BasicNameValuePair("tag", discovery));
+            args.add(new BasicNameValuePair("county", county));
+
+            return jsonParser.makeHttpRequest(getString(R.string.route_controller), HttpMethod.POST, args);
+        }
+
+        /**
+         * Take action from results of server request
+         */
+        protected void onPostExecute(JSONObject json) {
+            mProgressDialog.dismiss();
+            Log.i(TAG_CONTEXT, "Response: " + json);
+
+            try {
+                if(json.getBoolean("success")) {
+                    saveDiscoveryPoints(json.getJSONArray("discovery_points"));
+                } else {
+                    Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    /**
+     * Extract JSON data to SQLite database
+     */
+    private void saveDiscoveryPoints(JSONArray discoveryPoints) throws JSONException {
+        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        ArrayList<WayPoint> wayPoints = new ArrayList<>();
+        for(int i=0; i < discoveryPoints.length();i++) {
+            // get JSON objects one by one
+            int id = discoveryPoints.getJSONObject(i).getInt("id");
+            String county = discoveryPoints.getJSONObject(i).getString("county");
+            int locationId = discoveryPoints.getJSONObject(i).getInt("location_id");
+            String name = discoveryPoints.getJSONObject(i).getString("name");
+            double lat = discoveryPoints.getJSONObject(i).getDouble("lat");
+            double lng = discoveryPoints.getJSONObject(i).getDouble("long");
+            // save to array
+            wayPoints.add(new WayPoint(id, lat, lng, locationId, county, name));
+        }
+        // clear previous table data
+        db.resetTables();
+        // add discovery points to db
+        db.addDiscoveryPoints(wayPoints);
+        // go to new activity
+        startActivity(new Intent(getActivity(), DiscoveryPointsActivity.class));
+    }
 }

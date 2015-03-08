@@ -40,5 +40,9 @@
     <string name="action_forgot_password">Forgot password?</string>
     <string name="title_activity_reset_password">ResetPasswordActivity</string>
     <string name="action_reset">Reset Password</string>
+    <string name="enter_max_radius_title">Enter a radius (km)</string>
+    <string name="enter_county_title">County</string>
+    <string name="choose_county">County</string>
+    <string name="title_activity_discovery_points">Map</string>
 
 </resources>

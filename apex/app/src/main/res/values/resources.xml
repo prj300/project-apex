@@ -9,9 +9,14 @@
 
     <!--Find Route options-->
     <string-array name="route_options_array">
-        <item>Find a Route by Distance</item>
-        <item>Find a Route by Location</item>
-        <item>Find a Route by Difficulty</item>
-        <item>Find a Route by Popularity</item>
+        <item>Distance</item>
+        <item>Discovery Point</item>
+    </string-array>
+
+    <!--Counties-->
+    <string-array name="counties_array">
+        <item>Donegal</item>
+        <item>Sligo</item>
+        <item>Mayo</item>
     </string-array>
 </resources>
