@@ -1,5 +1,6 @@
 package apex.prj300.ie.apex.app.fragments;
 
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 
 import apex.prj300.ie.apex.app.R;
 import apex.prj300.ie.apex.app.classes.db.WildAtlanticWayDB;
+import apex.prj300.ie.apex.app.classes.models.WayPoint;
 import apex.prj300.ie.apex.app.interfaces.PassLocationListener;
 
 
@@ -80,7 +83,29 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     private void setUpMap() {
         mMap = fragment.getMap();
         mMap.setMyLocationEnabled(true);
+        addRoute();
+        addDiscoveryPoints();
 
+    }
+
+    private void addDiscoveryPoints() {
+        WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        ArrayList<WayPoint> discoveryPoints = db.getDiscoveryPoints();
+
+        // only attempt to place markers following if there are discovery points
+        if(discoveryPoints.size()>0) {
+            for (int i = 0; i < discoveryPoints.size(); i++) {
+                mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(discoveryPoints
+                            .get(i).getLatitude(), discoveryPoints
+                            .get(i).getLongitude()))
+                            .title(discoveryPoints.get(i).getName())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            }
+        }
+    }
+
+    private void addRoute() {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
         ArrayList<LatLng> latLngs = db.getLatLngs();
 
@@ -88,7 +113,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
         CameraUpdate cameraUpdate = CameraUpdateFactory
                 .newLatLngZoom(latLngs.get(0), 12f);
         mMap.moveCamera(cameraUpdate);
-
         // Plot array on map
         mMap.addPolyline(new PolylineOptions()
                 .addAll(latLngs)
@@ -105,7 +129,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
         mMap.addMarker(new MarkerOptions()
                 .position(latLngs.get(latLngs.size()-1))
                 .title("Finish"));
-
     }
 
 

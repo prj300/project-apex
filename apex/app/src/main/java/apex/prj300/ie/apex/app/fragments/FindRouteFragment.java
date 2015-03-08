@@ -294,7 +294,6 @@ public class FindRouteFragment extends Fragment
             mProgressDialog = new ProgressDialog(getActivity());
             mProgressDialog.setMessage("Finding a route..");
             mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            mProgressDialog.setProgress(0);
             mProgressDialog.setIndeterminate(false);
             mProgressDialog.setCancelable(true);
             mProgressDialog.show();
@@ -321,6 +320,9 @@ public class FindRouteFragment extends Fragment
                 // if route was retrieved
                 if(json.getBoolean("success")) {
                     getRouteFromJson(json.getJSONObject("route"));
+                    getDiscoveryPointsFromJson(json.getJSONArray("discovery_points"));
+                    // open new activity
+                    startActivity(new Intent(getActivity(), NewRouteActivity.class));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -328,6 +330,31 @@ public class FindRouteFragment extends Fragment
         }
     }
 
+    /**
+     * Extract discovery points data
+     */
+    private void getDiscoveryPointsFromJson(JSONArray json) throws JSONException {
+        ArrayList<WayPoint> discoveryPoints = new ArrayList<>();
+
+        Log.d(TAG_CONTEXT, "Discovery Points: " + json.length());
+
+        for(int i=0;i<json.length();i++) {
+            int id = json.getJSONObject(i).getInt("id");
+            String name = json.getJSONObject(i).getString("name");
+            int locationId = json.getJSONObject(i).getInt("location_id");
+            String county = json.getJSONObject(i).getString("county");
+            double lat = json.getJSONObject(i).getDouble("lat");
+            double lng = json.getJSONObject(i).getDouble("lng");
+
+            discoveryPoints.add(new WayPoint(id, lat, lng, locationId, county, name));
+        }
+        saveDiscoveryPoints(discoveryPoints);
+
+    }
+
+    /**
+     * Extract route data
+     */
     private void getRouteFromJson(JSONObject json) {
         ArrayList<WayPoint> wayPoints = new ArrayList<>();
         try {
@@ -356,8 +383,6 @@ public class FindRouteFragment extends Fragment
         db.addWaypoints(wayPoints);
         Log.i(TAG_CONTEXT, "Route saved");
 
-        // open new activity
-        startActivity(new Intent(getActivity(), NewRouteActivity.class));
     }
 
     /**
@@ -403,7 +428,8 @@ public class FindRouteFragment extends Fragment
 
             try {
                 if(json.getBoolean("success")) {
-                    saveDiscoveryPoints(json.getJSONArray("discovery_points"));
+                    getDiscoveryPointsFromJson(json.getJSONArray("discovery_points"));
+                    startActivity(new Intent(getActivity(), DiscoveryPointsActivity.class));
                 } else {
                     Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 }
@@ -417,25 +443,9 @@ public class FindRouteFragment extends Fragment
     /**
      * Extract JSON data to SQLite database
      */
-    private void saveDiscoveryPoints(JSONArray discoveryPoints) throws JSONException {
+
+    private void saveDiscoveryPoints(ArrayList<WayPoint> discoveryPoints) {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
-        ArrayList<WayPoint> wayPoints = new ArrayList<>();
-        for(int i=0; i < discoveryPoints.length();i++) {
-            // get JSON objects one by one
-            int id = discoveryPoints.getJSONObject(i).getInt("id");
-            String county = discoveryPoints.getJSONObject(i).getString("county");
-            int locationId = discoveryPoints.getJSONObject(i).getInt("location_id");
-            String name = discoveryPoints.getJSONObject(i).getString("name");
-            double lat = discoveryPoints.getJSONObject(i).getDouble("lat");
-            double lng = discoveryPoints.getJSONObject(i).getDouble("long");
-            // save to array
-            wayPoints.add(new WayPoint(id, lat, lng, locationId, county, name));
-        }
-        // clear previous table data
-        db.resetTables();
-        // add discovery points to db
-        db.addDiscoveryPoints(wayPoints);
-        // go to new activity
-        startActivity(new Intent(getActivity(), DiscoveryPointsActivity.class));
+        db.addDiscoveryPoints(discoveryPoints);
     }
 }
