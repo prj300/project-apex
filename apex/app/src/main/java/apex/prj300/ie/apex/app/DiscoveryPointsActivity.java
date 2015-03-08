@@ -2,6 +2,7 @@ package apex.prj300.ie.apex.app;
 
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -9,6 +10,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ public class DiscoveryPointsActivity extends FragmentActivity {
             if (mMap != null) {
                 setUpMap();
                 mMap.setMyLocationEnabled(true);
+                // mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
             }
         }
     }
@@ -51,9 +54,10 @@ public class DiscoveryPointsActivity extends FragmentActivity {
      * Add all markers from array to map
      */
     private void setUpMap() {
-        ArrayList<WayPoint> discoveryPoints = getDiscoveryPoints();
+        final ArrayList<WayPoint> discoveryPoints = getDiscoveryPoints();
 
         for(int i=0;i<discoveryPoints.size();i++) {
+
             mMap.addMarker(new MarkerOptions()
                     .title(discoveryPoints.get(i).getName())
                     .position(new LatLng(discoveryPoints.get(i)
@@ -62,6 +66,7 @@ public class DiscoveryPointsActivity extends FragmentActivity {
                     .icon(BitmapDescriptorFactory
                             .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         }
+
     }
 
     /**

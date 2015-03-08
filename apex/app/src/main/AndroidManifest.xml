@@ -50,6 +50,7 @@
         </activity>
         <activity
             android:name=".DiscoveryPointsActivity"
+            android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_discovery_points" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -17,6 +18,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -83,11 +85,14 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
     private void setUpMap() {
         mMap = fragment.getMap();
         mMap.setMyLocationEnabled(true);
-        addRoute();
         addDiscoveryPoints();
+        addRoute();
 
     }
 
+    /**
+     * Add discovery point markers to map
+     */
     private void addDiscoveryPoints() {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
         ArrayList<WayPoint> discoveryPoints = db.getDiscoveryPoints();
@@ -100,18 +105,23 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
                             .get(i).getLatitude(), discoveryPoints
                             .get(i).getLongitude()))
                             .title(discoveryPoints.get(i).getName())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                            .icon(BitmapDescriptorFactory
+                                    .defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
             }
         }
     }
 
+    /**
+     * Add polyline, start end end points to map
+     * Set map zoom
+     */
     private void addRoute() {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
         ArrayList<LatLng> latLngs = db.getLatLngs();
 
         // Move the camera to specified zoom level and location
         CameraUpdate cameraUpdate = CameraUpdateFactory
-                .newLatLngZoom(latLngs.get(0), 12f);
+                .newLatLngZoom(latLngs.get(0), 14f);
         mMap.moveCamera(cameraUpdate);
         // Plot array on map
         mMap.addPolyline(new PolylineOptions()
@@ -137,7 +147,6 @@ public class MyMapFragment extends Fragment implements PassLocationListener {
      * on both this fragment's activity and
      * NewRouteActivity, the location will be passed from the
      * Main Activity to this fragment. Virtually the same thing
-     * but ensures the values stay the same/are not duplicates
      */
     @Override
     public void onPassLocation(Location location) {

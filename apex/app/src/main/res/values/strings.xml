@@ -10,7 +10,7 @@
     <string name="title_activity_login">Login</string>
     <string name="action_my_routes">My Results</string>
     <string name="action_start_recording">Start Recording</string>
-    <string name="action_find_routes">Find Route</string>
+    <string name="action_discover">Discover</string>
     <string name="action_sign_out">Sign Out</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

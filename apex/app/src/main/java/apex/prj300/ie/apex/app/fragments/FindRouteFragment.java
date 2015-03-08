@@ -426,15 +426,20 @@ public class FindRouteFragment extends Fragment
             mProgressDialog.dismiss();
             Log.i(TAG_CONTEXT, "Response: " + json);
 
-            try {
-                if(json.getBoolean("success")) {
-                    getDiscoveryPointsFromJson(json.getJSONArray("discovery_points"));
-                    startActivity(new Intent(getActivity(), DiscoveryPointsActivity.class));
-                } else {
-                    Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
+            if(json != null) {
+                try {
+                    if (json.getBoolean("success")) {
+                        getDiscoveryPointsFromJson(json.getJSONArray("discovery_points"));
+                        startActivity(new Intent(getActivity(), DiscoveryPointsActivity.class));
+                    } else {
+                        Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
+            } else {
+                Toast.makeText(getActivity(), "Server error.", Toast.LENGTH_SHORT).show();
+                Log.d(TAG_CONTEXT, "Server error.");
             }
         }
 
