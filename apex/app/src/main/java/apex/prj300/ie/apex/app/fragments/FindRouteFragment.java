@@ -36,6 +36,7 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import apex.prj300.ie.apex.app.DiscoveryPointsActivity;
@@ -54,6 +55,9 @@ import static com.google.android.gms.common.api.GoogleApiClient.ConnectionCallba
 public class FindRouteFragment extends Fragment
         implements ConnectionCallbacks, OnConnectionFailedListener {
 
+    private static final String TAG_DISCOVER = "discover";
+    private static final String TAG_DISTANCE = "distance";
+    private static final String TAG_FIND_ROUTE = "FindRoute";
     JSONParser jsonParser = new JSONParser();
     private ProgressDialog mProgressDialog;
     private static Location mLastLocation;
@@ -63,7 +67,6 @@ public class FindRouteFragment extends Fragment
 
     private static final String TAG_CONTEXT = "FindRouteFragment";
     // counties on the Wild Atlantic Way Route
-    private static String[] counties = new String[] { "Donegal", "Sligo", "Mayo", "Galway", "Clare", "Limerick", "Kerry", "Cork"};
 
     public FindRouteFragment() {
         // Required empty public constructor
@@ -138,6 +141,7 @@ public class FindRouteFragment extends Fragment
         // can be used with String also
         final NumberPicker np = new NumberPicker(getActivity());
 
+        final String[] counties = getResources().getStringArray(R.array.counties_array);
         np.setMinValue(0);
         np.setMaxValue(counties.length-1);
         np.setWrapSelectorWheel(false);
@@ -151,7 +155,7 @@ public class FindRouteFragment extends Fragment
                 String county = (String) Array.get(counties, np.getValue());
                 Log.d(TAG_CONTEXT, "County selected: " + county);
                 if(isConnected()) {
-                    new FindDiscoveryPoints("discovery", county).execute();
+                    new FindDiscoveryPoints(TAG_DISCOVER, county).execute();
                 } else {
                     Toast.makeText(getActivity(), "No network connection.", Toast.LENGTH_SHORT).show();
                 }
@@ -211,10 +215,7 @@ public class FindRouteFragment extends Fragment
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Log.d(TAG_CONTEXT, "Distance selected: " + np.getValue());
-                new FindRouteByDistance((float) np.getValue(),
-                        mLastLocation.getLatitude(),
-                        mLastLocation.getLongitude(), "distance")
-                        .execute();
+                chooseDirection(np.getValue());
 
             }
         });
@@ -226,6 +227,26 @@ public class FindRouteFragment extends Fragment
         });
         builder.show();
 
+    }
+
+    /**
+     * Prompt the user the choose a desired direction
+     * Route start to finish point
+     */
+    private void chooseDirection(final int distance) {
+        final String[] directions = getResources().getStringArray(R.array.direction_array);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.title_direction)
+                .setItems(directions, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String direction = directions[which];
+                        Log.i(TAG_FIND_ROUTE, "Direction: " + direction);
+                        // execute server request
+                        new FindRoute(TAG_DISTANCE, distance, direction, mLatitude, mLongitude).execute();
+                    }
+                })
+                .create().show();
     }
 
     /**
@@ -274,17 +295,19 @@ public class FindRouteFragment extends Fragment
     /**
      * Async Task to find route of a defined length
      */
-    private class FindRouteByDistance extends AsyncTask<Void, Integer, JSONObject>{
-        float picked;
+    private class FindRoute extends AsyncTask<Void, Integer, JSONObject>{
+        String tag;
+        int distance;
+        String direction;
         double latitude;
         double longitude;
-        String tag;
 
-        public FindRouteByDistance(float picked, double lat, double lon, String tag) {
-            this.picked = picked;
-            this.latitude = lat;
-            this.longitude = lon;
+        public FindRoute(String tag, int distance, String direction, double latitude, double longitude) {
             this.tag = tag;
+            this.distance = distance;
+            this.direction = direction;
+            this.latitude = latitude;
+            this.longitude = longitude;
         }
 
         @Override
@@ -303,7 +326,8 @@ public class FindRouteFragment extends Fragment
         protected JSONObject doInBackground(Void... params) {
             List<NameValuePair> args = new ArrayList<>();
             args.add(new BasicNameValuePair("tag", tag));
-            args.add(new BasicNameValuePair("distance", String.valueOf(picked)));
+            args.add(new BasicNameValuePair("distance", String.valueOf(distance)));
+            args.add(new BasicNameValuePair("direction", direction));
             args.add(new BasicNameValuePair("latitude", String.valueOf(latitude)));
             args.add(new BasicNameValuePair("longitude", String.valueOf(longitude)));
 
@@ -315,6 +339,7 @@ public class FindRouteFragment extends Fragment
         protected void onPostExecute(JSONObject json) {
             mProgressDialog.dismiss();
             Log.d(TAG_CONTEXT, "JSON: " + json);
+
             try {
                 Toast.makeText(getActivity(), json.getString("message"), Toast.LENGTH_SHORT).show();
                 // if route was retrieved
@@ -379,7 +404,7 @@ public class FindRouteFragment extends Fragment
      */
     private void saveRoute(ArrayList<WayPoint> wayPoints) {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
-        db.resetTables(); // clear any previous data in tables
+        db.resetRouteTable(); // clear any previous data in tables
         db.addWaypoints(wayPoints);
         Log.i(TAG_CONTEXT, "Route saved");
 
@@ -389,11 +414,11 @@ public class FindRouteFragment extends Fragment
      * Returns list of way points for points of interest on WAW
      */
     private class FindDiscoveryPoints extends AsyncTask<Void, Void, JSONObject> {
-        String discovery; // tag
-        String county; // chosen county
+        String tag;
+        String county;
 
-        public FindDiscoveryPoints(String discovery, String county) {
-            this.discovery = discovery;
+        public FindDiscoveryPoints(String tag, String county) {
+            this.tag = tag;
             this.county = county;
         }
 
@@ -413,7 +438,7 @@ public class FindRouteFragment extends Fragment
 
             // name value pairs that are sent to server
             ArrayList<NameValuePair> args = new ArrayList<>();
-            args.add(new BasicNameValuePair("tag", discovery));
+            args.add(new BasicNameValuePair("tag", tag));
             args.add(new BasicNameValuePair("county", county));
 
             return jsonParser.makeHttpRequest(getString(R.string.route_controller), HttpMethod.POST, args);
@@ -451,6 +476,7 @@ public class FindRouteFragment extends Fragment
 
     private void saveDiscoveryPoints(ArrayList<WayPoint> discoveryPoints) {
         WildAtlanticWayDB db = new WildAtlanticWayDB(getActivity());
+        db.resetDiscoveries();
         db.addDiscoveryPoints(discoveryPoints);
     }
 }

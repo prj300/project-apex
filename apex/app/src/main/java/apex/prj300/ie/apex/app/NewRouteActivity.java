@@ -73,7 +73,7 @@ public class NewRouteActivity extends FragmentActivity
     private static final String TAG_CONTEXT = "NewRouteActivity";
 
     // Desired interval for location updates
-    public static final long UPDATE_INTERVAL_MS = 2500;
+    public static final long UPDATE_INTERVAL_MS = 4000;
     // Fastest rate for location updates
     public static final long FASTEST_UPDATE_INTERVAL_MS = UPDATE_INTERVAL_MS / 2;
 

@@ -9,8 +9,8 @@
 
     <!--Find Route options-->
     <string-array name="route_options_array">
-        <item>Distance</item>
-        <item>Discovery Point</item>
+        <item>Route - Distance</item>
+        <item>Discovery Points - County</item>
     </string-array>
 
     <!--Counties-->
@@ -18,5 +18,10 @@
         <item>Donegal</item>
         <item>Sligo</item>
         <item>Mayo</item>
+        <item>Galway</item>
+        <item>Clare</item>
+        <item>Limerick</item>
+        <item>Kerry</item>
+        <item>Cork</item>
     </string-array>
 </resources>

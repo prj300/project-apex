@@ -5,17 +5,4 @@
     android:background="@color/apex_blue"
     android:layout_height="match_parent">
 
-    <TextView
-        android:textSize="23sp"
-        android:id="@+id/txtDistanceHeading"
-        android:text="@string/text_distance_heading"
-        android:layout_width="fill_parent"
-        android:layout_height="31dp" />
-    <TextView
-        android:textSize="23sp"
-        android:id="@+id/txtDistanceTime"
-        android:text="@string/text_distance_time"
-        android:layout_width="fill_parent"
-        android:layout_height="31dp" />
-
 </LinearLayout>

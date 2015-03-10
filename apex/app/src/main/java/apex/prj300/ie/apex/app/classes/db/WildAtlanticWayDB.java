@@ -108,13 +108,24 @@ public class WildAtlanticWayDB extends SQLiteOpenHelper {
     /**
      * Delete any previous route in database
      */
-    public void resetTables() {
+    public void resetRouteTable() {
         SQLiteDatabase db = this.getWritableDatabase();
         // delete rows
         db.delete(TABLE_WAY_POINTS, null, null);
+        db.close();
+    }
+
+    /**
+     * Delete any previous route in database
+     */
+    public void resetDiscoveries() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // delete rows
         db.delete(TABLE_DISCOVERY_POINTS, null, null);
         db.close();
     }
+
+
 
     /**
      * Retrieve lat lng points from table

@@ -44,5 +44,6 @@
     <string name="enter_county_title">County</string>
     <string name="choose_county">County</string>
     <string name="title_activity_discovery_points">Map</string>
+    <string name="title_direction">Direction</string>
 
 </resources>
