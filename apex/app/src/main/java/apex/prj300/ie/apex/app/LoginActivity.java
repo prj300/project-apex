@@ -67,7 +67,14 @@ public class LoginActivity extends Activity {
         mLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mEmail.getText().toString().equals("")
+                if(mEmail.getText().toString().equals("prj300@itsligo.ie")) {
+                    if(isNetworkAvailable()) {
+                        byPassLogin(mEmail.getText().toString());
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No Network Connection", Toast.LENGTH_LONG).show();
+                    }
+                }
+                else if(mEmail.getText().toString().equals("")
                         || mPassword.getText().toString().equals("")) {
                         Toast.makeText(getApplicationContext(), "Missing field(s)", Toast.LENGTH_SHORT).show();
                 } else {
@@ -104,6 +111,15 @@ public class LoginActivity extends Activity {
                 startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
             }
         });
+    }
+
+    /**
+     * For lecture testing purposes only
+     * as problems with Cloud and user controller
+     */
+    private void byPassLogin(String email) {
+        User user = new User(123, email, Grade.A, 100, 9999991, 50f, 25f);
+        Login(user);
     }
 
     /**
